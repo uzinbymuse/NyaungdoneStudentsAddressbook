@@ -10,12 +10,14 @@ export const SESSION_COOKIE_NAME = "nd_alumni_session";
 // (U+1040–U+1049, e.g. from a phone Myanmar keyboard) must match the same
 // PIN typed with Latin digits on a PC. Normalizing here covers every
 // caller — login, register, change-password, admin credentials, temp PINs.
+// Leading/trailing whitespace is also stripped: phone keyboards can
+// append an invisible space (autocomplete) that the user cannot see.
 export async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(toWesternDigits(password), 12);
+  return bcrypt.hash(toWesternDigits(password.trim()), 12);
 }
 
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  return bcrypt.compare(toWesternDigits(password), hash);
+  return bcrypt.compare(toWesternDigits(password.trim()), hash);
 }
 
 export async function setSessionCookie(payload: SessionPayload): Promise<void> {
