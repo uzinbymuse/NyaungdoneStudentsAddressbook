@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { BookOpen, CheckCircle2, Lock, Search, Shield, Users } from "lucide-react";
+import { BookOpen, Search, Shield, Users } from "lucide-react";
 
 export const instant = false;
 
@@ -76,29 +76,10 @@ export default async function HomePage() {
       </section>
 
       {/* Trust & Privacy Guarantees */}
-      <section className="mt-10 grid gap-6 md:grid-cols-3">
-        <div className="rounded-2xl border border-stone-200 bg-white p-6">
-          <Lock className="h-6 w-6 text-amber-800" />
-          <h2 className="mt-3 text-lg font-bold text-stone-900">အများပြည်သူ မမြင်ရပါ</h2>
-          <p className="mt-2 text-sm text-stone-600">
-            အတည်ပြုပြီးသား ကျောင်းသားဟောင်းများသာ Login ဝင်၍ ရှာဖွေနိုင်ပါသည်။ Google တွင်လည်း ရှာတွေ့မည် မဟုတ်ပါ။
-          </p>
-        </div>
-        <div className="rounded-2xl border border-stone-200 bg-white p-6">
-          <CheckCircle2 className="h-6 w-6 text-amber-800" />
-          <h2 className="mt-3 text-lg font-bold text-stone-900">ကိုယ်တိုင် ထိန်းချုပ်ခွင့်</h2>
-          <p className="mt-2 text-sm text-stone-600">
-            ဖုန်းနံပါတ်၊ Viber/Telegram နှင့် ရပ်ကွက်အဆင့် လိပ်စာများကို Web နှင့် Print စာအုပ်တွင် ပြမည်/မပြမည် ကိုယ်တိုင်ရွေးနိုင်ပါသည်။
-          </p>
-        </div>
-        <div className="rounded-2xl border border-stone-200 bg-white p-6">
-          <Shield className="h-6 w-6 text-amber-800" />
-          <h2 className="mt-3 text-lg font-bold text-stone-900">Admin စိစစ်အတည်ပြုမှု</h2>
-          <p className="mt-2 text-sm text-stone-600">
-            စာရင်းသွင်းပြီးတိုင်း Admin က ကျောင်းမှတ်တမ်းဖြင့် တိုက်ဆိုင်အတည်ပြုပြီးမှသာ Directory အတွင်း ဝင်ခွင့်ပေးပါသည်။
-          </p>
-        </div>
-      </section>
+      <p className="mt-8 text-center text-sm leading-relaxed text-stone-600">
+        ဤစာရင်းသည် ပါဠိတက္ကသိုလ် ညောင်တုန်း ကျောင်းသားဟောင်းများအတွက်သာ ဖြစ်ပါသည်။ အတည်ပြုပြီးသော
+        ကျောင်းသားဟောင်းများသာ Login ဝင်၍ ကြည့်ရှုနိုင်ပါသည်။
+      </p>
 
       <p className="mt-8 text-center text-sm text-stone-600">
         Admin ကို ဆက်သွယ်ရန် — Telegram:{" "}
