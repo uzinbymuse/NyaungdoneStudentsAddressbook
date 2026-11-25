@@ -313,7 +313,9 @@ export default function RegisterPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-base font-semibold text-stone-800">မြို့နယ်</label>
+                  <label className="block text-base font-semibold text-stone-800">
+                    မြို့နယ်/မြို့ <span className="text-red-600">*</span>
+                  </label>
                   <select
                     value={form.township}
                     onChange={(e) => setForm({ ...form, township: e.target.value })}
@@ -343,19 +345,21 @@ export default function RegisterPage() {
             )}
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="block text-base font-semibold text-stone-800">
-                  မြို့ <span className="text-red-600">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={form.city}
-                  onChange={(e) => setForm({ ...form, city: e.target.value })}
-                  placeholder="လက်ရှိ နေထိုင်သော မြို့"
-                  className="mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
-                />
-              </div>
+              {!isDomestic && (
+                <div>
+                  <label className="block text-base font-semibold text-stone-800">
+                    မြို့နယ်/မြို့ <span className="text-red-600">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={form.city}
+                    onChange={(e) => setForm({ ...form, city: e.target.value })}
+                    placeholder="လက်ရှိ နေထိုင်သော မြို့နယ် / မြို့"
+                    className="mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
+                  />
+                </div>
+              )}
               <div>
                 <label className="block text-base font-semibold text-stone-800">
                   ရွာ / ရပ်ကွက် (အိမ်အမှတ် မရေးပါနှင့်)

@@ -38,6 +38,9 @@ export async function POST(req: NextRequest) {
     const phonePrimary = toWesternDigits(String(body.phonePrimary || "")).trim();
     const city = normalizeMyanmarText(String(body.city || ""));
     const password = String(body.password || "");
+    // Domestic users pick a township (မြို့နယ်) and no longer enter a
+    // separate city (မြို့) — the township is stored as the city.
+    const township = body.township ? normalizeMyanmarText(String(body.township)) : null;
 
     if (
       !fullName ||
@@ -45,7 +48,7 @@ export async function POST(req: NextRequest) {
       !dormitory ||
       !currentRoleOrMonastery ||
       !phonePrimary ||
-      !city ||
+      !(city || township) ||
       password.length < 6
     ) {
       return NextResponse.json(
@@ -63,7 +66,6 @@ export async function POST(req: NextRequest) {
     const isDomestic = countryCode === "MM";
 
     const region = body.region ? normalizeMyanmarText(String(body.region)) : null;
-    const township = body.township ? normalizeMyanmarText(String(body.township)) : null;
     const wardOrVillage = body.wardOrVillage
       ? normalizeMyanmarText(String(body.wardOrVillage))
       : null;
@@ -146,7 +148,7 @@ export async function POST(req: NextRequest) {
           isDomestic,
           region,
           township,
-          city,
+          city: city || township || "",
           wardOrVillage,
           phonePrimaryEnc: encryptField(phonePrimary)!,
           phoneLookupHash,
