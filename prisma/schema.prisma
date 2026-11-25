@@ -85,6 +85,11 @@ model AlumniProfile {
   fullName               String
   normalizedName         String
   formerName             String?
+  // Birthplace (မွေးဇာတိမြို့) — required on the register form
+  // (admin decision 2026-11-26): same-name alumni are told apart by it,
+  // and it prints right after the degree in the book. DB default "" so
+  // older rows (created before this field) stay valid.
+  birthplace             String        @default("")
   degreeName             String?
   batchYearMm            Int?
   batchYearDisplay       String

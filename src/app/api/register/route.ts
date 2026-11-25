@@ -31,6 +31,7 @@ export async function POST(req: NextRequest) {
     // members-only web directory and to the print book.
 
     const fullName = normalizeMyanmarText(String(body.fullName || ""));
+    const birthplace = normalizeMyanmarText(String(body.birthplace || ""));
     const degreeName = normalizeMyanmarText(String(body.degreeName || ""));
     const batchYearDisplay = normalizeMyanmarText(String(body.batchYearDisplay || ""));
     const dormitory = normalizeMyanmarText(String(body.dormitory || ""));
@@ -45,6 +46,7 @@ export async function POST(req: NextRequest) {
 
     if (
       !fullName ||
+      !birthplace ||
       !batchYearDisplay ||
       !dormitory ||
       !currentRoleOrMonastery ||
@@ -134,6 +136,7 @@ export async function POST(req: NextRequest) {
           fullName,
           normalizedName: buildSearchNameKey(fullName),
           formerName: body.formerName ? normalizeMyanmarText(String(body.formerName)) : null,
+          birthplace,
           degreeName: degreeName || null,
           batchYearMm,
           batchYearDisplay,

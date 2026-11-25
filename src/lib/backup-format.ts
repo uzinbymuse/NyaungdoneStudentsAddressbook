@@ -62,6 +62,7 @@ export interface BackupProfile {
   fullName: string;
   normalizedName: string;
   formerName: string | null;
+  birthplace: string;
   degreeName: string | null;
   batchYearMm: number | null;
   batchYearDisplay: string;
@@ -337,6 +338,9 @@ export function validateBackupData(value: unknown): { data: BackupData; issues: 
       fullName: reqStr(row, "fullName", where),
       normalizedName: reqStr(row, "normalizedName", where),
       formerName: optStr(row, "formerName", where),
+      // optStr (not reqStr): backups exported before birthplace existed
+      // have no such key — they restore with an empty birthplace.
+      birthplace: optStr(row, "birthplace", where) ?? "",
       degreeName: optStr(row, "degreeName", where),
       batchYearMm: optNum(row, "batchYearMm", where),
       batchYearDisplay: reqStr(row, "batchYearDisplay", where),

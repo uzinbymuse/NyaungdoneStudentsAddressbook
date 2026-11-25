@@ -62,6 +62,11 @@ export const IMPORT_COLUMNS: ImportColumn[] = [
   { key: "telegram", header: "Telegram", required: false },
   { key: "email", header: "အီးမေးလ်", required: false, aliases: ["Email", "အီးမေးလ်လိပ်စာ"] },
   { key: "facebook", header: "Facebook", required: false },
+  // Birthplace goes last on purpose: the template's dropdown validations
+  // use hardcoded column letters (B/E/H/I/J), so inserting a column
+  // earlier would shift them. Import matches columns by header, not
+  // by position, so the order here does not matter.
+  { key: "birthplace", header: "မွေးဇာတိမြို့", required: true },
 ];
 
 /** Header row for the downloadable template ("*" marks required columns). */
@@ -71,6 +76,7 @@ export function templateHeaders(): string[] {
 
 export interface ValidImportRow {
   fullName: string;
+  birthplace: string;
   normalizedName: string;
   monkOrLay: "MONK" | "LAY" | "NUN" | "OTHER";
   degreeName: string | null;
@@ -176,6 +182,9 @@ function validateRow(
   const fullName = normalizeMyanmarText(raw.fullName || "");
   if (!fullName) errors.push("အမည် မပါပါ");
 
+  const birthplace = normalizeMyanmarText(raw.birthplace || "");
+  if (!birthplace) errors.push("မွေးဇာတိမြို့ မပါပါ");
+
   const monkOrLay = resolveMonkOrLay(raw.monkOrLay || "");
   if (!monkOrLay) errors.push("ရဟန်း/လူ ကို ရဟန်း (သို့) လူ လို့ ထည့်ပါ");
 
@@ -215,6 +224,7 @@ function validateRow(
 
   const data: ValidImportRow = {
     fullName,
+    birthplace,
     normalizedName: buildSearchNameKey(fullName),
     monkOrLay: monkOrLay as "MONK" | "LAY" | "NUN" | "OTHER",
     degreeName: raw.degreeName ? normalizeMyanmarText(raw.degreeName) : null,

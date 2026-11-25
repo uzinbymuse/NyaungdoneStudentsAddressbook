@@ -16,6 +16,7 @@ export default function RegisterPage() {
     monkOrLay: "MONK",
     fullName: "",
     formerName: "",
+    birthplace: "",
     degreeName: "",
     batchYearDisplay: "",
     batchYearApprox: false,
@@ -121,7 +122,7 @@ export default function RegisterPage() {
         <div className="mt-4 flex items-start gap-3 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
           <BookOpen className="mt-0.5 h-5 w-5 shrink-0" />
           <div>
-            ဘွဲ့၊ လိပ်စာ၊ နေခဲ့သော ကျောင်းဆောင်၊ ဖုန်းနံပါတ် များကိုသာ Print AddressBook (လိပ်စာစာအုပ်) တွင် ထည့်သွင်းပါမည်။
+            ဘွဲ့၊ မွေးဇာတိမြို့၊ လိပ်စာ၊ နေခဲ့သော ကျောင်းဆောင်၊ ဖုန်းနံပါတ် များကိုသာ Print AddressBook (လိပ်စာစာအုပ်) တွင် ထည့်သွင်းပါမည်။
           </div>
         </div>
 
@@ -175,6 +176,20 @@ export default function RegisterPage() {
                 value={form.formerName}
                 onChange={(e) => setForm({ ...form, formerName: e.target.value })}
                 placeholder="သူငယ်ချင်းများ မှတ်မိစေရန် (ရွေးချယ်)"
+                className="mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
+              />
+            </div>
+
+            <div>
+              <label className="block text-base font-semibold text-stone-800">
+                မွေးဇာတိမြို့ <span className="text-red-600">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                value={form.birthplace}
+                onChange={(e) => setForm({ ...form, birthplace: e.target.value })}
+                placeholder="ဥပမာ - အရာတော်၊ မုံရွာ"
                 className="mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
               />
             </div>

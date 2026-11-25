@@ -28,6 +28,7 @@ interface AdminAlumni {
   monkOrLay: string;
   fullName: string;
   formerName?: string | null;
+  birthplace: string;
   degreeName?: string | null;
   batchYearDisplay: string;
   batchYearMm?: number | null;
@@ -75,6 +76,7 @@ interface EditFormState {
   monkOrLay: string;
   fullName: string;
   formerName: string;
+  birthplace: string;
   degreeName: string;
   batchYearDisplay: string;
   batchYearApprox: boolean;
@@ -315,6 +317,7 @@ export default function AdminDashboardPage() {
       monkOrLay: item.monkOrLay || "MONK",
       fullName: item.fullName || "",
       formerName: item.formerName || "",
+      birthplace: item.birthplace || "",
       degreeName: item.degreeName || "",
       batchYearDisplay: item.batchYearDisplay || "",
       batchYearApprox: Boolean(item.batchYearApprox),
@@ -387,6 +390,7 @@ export default function AdminDashboardPage() {
     const headers = [
       "AlumniID",
       "FullName",
+      "Birthplace",
       "Degree",
       "BatchYear",
       "Dormitory",
@@ -406,6 +410,7 @@ export default function AdminDashboardPage() {
         [
           r.alumniCode,
           r.fullName,
+          r.birthplace || "",
           r.degreeName || "",
           r.batchYearDisplay,
           r.dormitory,
@@ -615,6 +620,13 @@ export default function AdminDashboardPage() {
                         ({item.batchYearDisplay})
                       </span>
                     </h3>
+                    {(item.degreeName || item.birthplace) && (
+                      <p className="text-sm font-medium text-amber-900">
+                        {item.degreeName}
+                        {item.degreeName && item.birthplace ? " · " : ""}
+                        {item.birthplace ? `မွေးဇာတိ: ${item.birthplace}` : ""}
+                      </p>
+                    )}
                     <p className="text-sm text-stone-700">
                       {item.dormitory}
                       {item.currentMonastery ? ` · ${item.currentMonastery}` : ""} ·{" "}
@@ -1137,6 +1149,15 @@ export default function AdminDashboardPage() {
                   <input
                     value={editForm.formerName}
                     onChange={(e) => setEdit({ formerName: e.target.value })}
+                    className={inp}
+                  />
+                </div>
+                <div>
+                  <label className={lbl}>မွေးဇာတိမြို့</label>
+                  <input
+                    value={editForm.birthplace}
+                    onChange={(e) => setEdit({ birthplace: e.target.value })}
+                    placeholder="ဥပမာ - အရာတော်၊ မုံရွာ"
                     className={inp}
                   />
                 </div>

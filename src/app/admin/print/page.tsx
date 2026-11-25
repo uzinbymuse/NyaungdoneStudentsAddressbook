@@ -67,7 +67,8 @@ export default async function AdminPrintBookPage() {
             <div key={p.id} className="break-inside-avoid border-b border-stone-200 pb-3 text-sm">
               <div className="font-bold">
                 [{p.alumniCode}] {p.fullName}
-                {p.degreeName ? ` (${p.degreeName})` : ""} — {p.batchYearDisplay}
+                {p.degreeName ? ` (${p.degreeName})` : ""}
+                {p.birthplace ? ` · မွေးဇာတိ: ${p.birthplace}` : ""} — {p.batchYearDisplay}
               </div>
               <div className="text-stone-700">
                 {p.dormitory}
@@ -102,7 +103,8 @@ export default async function AdminPrintBookPage() {
             <div key={p.id} className="break-inside-avoid border-b border-stone-200 pb-3 text-sm">
               <div className="font-bold">
                 [{p.alumniCode}] {p.fullName}
-                {p.degreeName ? ` (${p.degreeName})` : ""} — {p.batchYearDisplay}
+                {p.degreeName ? ` (${p.degreeName})` : ""}
+                {p.birthplace ? ` · မွေးဇာတိ: ${p.birthplace}` : ""} — {p.batchYearDisplay}
               </div>
               <div className="text-stone-700">
                 {p.dormitory}

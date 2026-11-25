@@ -361,6 +361,7 @@ export async function POST(req: NextRequest) {
             monkOrLay: data.monkOrLay,
             fullName: data.fullName,
             normalizedName: data.normalizedName,
+            birthplace: data.birthplace,
             degreeName: data.degreeName,
             batchYearMm: data.batchYearMm,
             batchYearDisplay: data.batchYearDisplay,

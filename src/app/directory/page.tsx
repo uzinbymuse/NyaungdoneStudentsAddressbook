@@ -12,6 +12,7 @@ interface AlumniItem {
   monkOrLay: string;
   fullName: string;
   formerName?: string | null;
+  birthplace: string;
   degreeName?: string | null;
   batchYearDisplay: string;
   dormitory: string;
@@ -232,8 +233,12 @@ export default function DirectoryPage() {
                     {item.formerName && (
                       <p className="text-xs text-stone-500">ယခင်အမည်: {item.formerName}</p>
                     )}
-                    {item.degreeName && (
-                      <p className="text-sm font-medium text-amber-900">{item.degreeName}</p>
+                    {(item.degreeName || item.birthplace) && (
+                      <p className="text-sm font-medium text-amber-900">
+                        {item.degreeName}
+                        {item.degreeName && item.birthplace ? " · " : ""}
+                        {item.birthplace ? `မွေးဇာတိ: ${item.birthplace}` : ""}
+                      </p>
                     )}
                   </div>
                   <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-900">

@@ -78,6 +78,7 @@ export async function GET(req: NextRequest) {
       monkOrLay: r.monkOrLay,
       fullName: r.fullName,
       formerName: r.formerName,
+      birthplace: r.birthplace,
       degreeName: r.degreeName,
       batchYearDisplay: r.batchYearDisplay,
       dormitory: r.dormitory,

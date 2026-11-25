@@ -130,6 +130,7 @@ export async function POST(req: NextRequest) {
       if (p.currentMonastery !== undefined) {
         updateFields.currentMonastery = normalizeMyanmarText(p.currentMonastery || "");
       }
+      if (p.birthplace) updateFields.birthplace = normalizeMyanmarText(p.birthplace);
       if (p.city) updateFields.city = normalizeMyanmarText(p.city);
       if (p.wardOrVillage !== undefined) {
         updateFields.wardOrVillage = normalizeMyanmarText(p.wardOrVillage || "");
@@ -211,6 +212,7 @@ export async function POST(req: NextRequest) {
     };
 
     const fullName = norm(f.fullName);
+    const birthplace = norm(f.birthplace);
     const dormitory =
       str(f.dormitory) === "အခြား" ? norm(f.dormitoryOther) : norm(f.dormitory);
     const currentRoleOrMonastery = norm(f.currentRoleOrMonastery);
@@ -283,6 +285,7 @@ export async function POST(req: NextRequest) {
       fullName,
       normalizedName: buildSearchNameKey(fullName),
       formerName: normOrNull(f.formerName),
+      birthplace,
       degreeName: normOrNull(f.degreeName),
       batchYearDisplay,
       batchYearMm,
@@ -320,6 +323,7 @@ export async function POST(req: NextRequest) {
       monkOrLay: existing.monkOrLay,
       fullName: existing.fullName,
       formerName: existing.formerName,
+      birthplace: existing.birthplace,
       degreeName: existing.degreeName,
       batchYearDisplay: existing.batchYearDisplay,
       batchYearMm: existing.batchYearMm,

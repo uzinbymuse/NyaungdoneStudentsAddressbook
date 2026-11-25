@@ -33,6 +33,7 @@ export async function GET() {
       monkOrLay: profile.monkOrLay,
       fullName: profile.fullName,
       formerName: profile.formerName,
+      birthplace: profile.birthplace,
       degreeName: profile.degreeName,
       batchYearDisplay: profile.batchYearDisplay,
       batchYearApprox: profile.batchYearApprox,

@@ -9,6 +9,7 @@ interface ProfileData {
   alumniCode: string;
   fullName: string;
   formerName?: string | null;
+  birthplace: string;
   degreeName?: string | null;
   batchYearDisplay: string;
   dormitory: string;
@@ -57,6 +58,7 @@ export default function ProfilePage() {
 
   const [corrRole, setCorrRole] = useState("");
   const [corrMonastery, setCorrMonastery] = useState("");
+  const [corrBirthplace, setCorrBirthplace] = useState("");
   const [corrCity, setCorrCity] = useState("");
   const [corrPhone, setCorrPhone] = useState("");
   const [corrReason, setCorrReason] = useState("");
@@ -108,6 +110,7 @@ export default function ProfilePage() {
     const proposedData: Record<string, string> = {};
     if (corrRole.trim()) proposedData.currentRoleOrMonastery = corrRole.trim();
     if (corrMonastery.trim()) proposedData.currentMonastery = corrMonastery.trim();
+    if (corrBirthplace.trim()) proposedData.birthplace = corrBirthplace.trim();
     if (corrCity.trim()) proposedData.city = corrCity.trim();
     if (corrPhone.trim()) proposedData.phonePrimary = corrPhone.trim();
 
@@ -119,6 +122,8 @@ export default function ProfilePage() {
     if (res.ok) {
       setNotice("ပြင်ဆင်ရန် တောင်းဆိုချက်ကို Admin ထံ ပေးပို့ပြီးပါပြီ။");
       setCorrRole("");
+      setCorrMonastery("");
+      setCorrBirthplace("");
       setCorrCity("");
       setCorrPhone("");
       setCorrReason("");
@@ -199,6 +204,7 @@ export default function ProfilePage() {
             <h1 className="mt-2 text-2xl font-bold text-stone-900">{profile.fullName}</h1>
             <p className="text-sm text-stone-600">
               {profile.degreeName ? `${profile.degreeName} · ` : ""}
+              {profile.birthplace ? `မွေးဇာတိ: ${profile.birthplace} · ` : ""}
               {profile.batchYearDisplay} · {profile.dormitory}
             </p>
           </div>
@@ -253,7 +259,8 @@ export default function ProfilePage() {
           <div className="mt-3 rounded-xl border border-amber-200 bg-white p-4 text-sm text-stone-800">
             <p className="font-bold">
               [{profile.alumniCode}] {profile.fullName}
-              {profile.degreeName ? ` (${profile.degreeName})` : ""} — {profile.batchYearDisplay}
+              {profile.degreeName ? ` (${profile.degreeName})` : ""}
+              {profile.birthplace ? ` · မွေးဇာတိ: ${profile.birthplace}` : ""} — {profile.batchYearDisplay}
             </p>
             <p className="mt-1">
               {profile.dormitory}
@@ -338,6 +345,13 @@ export default function ProfilePage() {
             value={corrMonastery}
             onChange={(e) => setCorrMonastery(e.target.value)}
             placeholder="လက်ရှိကျောင်းတိုက် (အသစ်)"
+            className="rounded-xl border border-stone-300 px-3 py-2 text-sm"
+          />
+          <input
+            type="text"
+            value={corrBirthplace}
+            onChange={(e) => setCorrBirthplace(e.target.value)}
+            placeholder="မွေးဇာတိမြို့ (အသစ်)"
             className="rounded-xl border border-stone-300 px-3 py-2 text-sm"
           />
           <input
