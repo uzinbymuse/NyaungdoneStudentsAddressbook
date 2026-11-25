@@ -159,7 +159,7 @@ export async function POST(req: NextRequest) {
           showViberTgWeb: Boolean(body.showViberTgWeb),
           showEmailFbWeb: Boolean(body.showEmailFbWeb),
           showWardWeb: body.showWardWeb !== false,
-          showPhonePrint: false, // phone is not printed unless the member enables it on their Profile page
+          showPhonePrint: true, // phone is always in the print book (admin decision 2026-11-25); a member can turn it off on their Profile page
           showWardPrint: body.showWardPrint !== false,
           adminNote: body.adminNote ? normalizeMyanmarText(String(body.adminNote)) : null,
           referrerName: body.referrerName ? normalizeMyanmarText(String(body.referrerName)) : null,
@@ -172,14 +172,15 @@ export async function POST(req: NextRequest) {
           profileStatus: "PENDING",
           consents: {
             // Registration implies agreement: web directory + print
-            // book are granted (so no alumnus is left out of the book);
-            // phone in print stays off by default. The member can
-            // change both later on their Profile page.
+            // book are granted (so no alumnus is left out of the book),
+            // and phone is included in the print book too (admin
+            // decision 2026-11-25). The member can change both later
+            // on their Profile page.
             create: [
               { consentType: "POLICY_AGREED", granted: true },
               { consentType: "WEB_DIRECTORY", granted: true },
               { consentType: "BOOK_PUBLICATION", granted: true },
-              { consentType: "BOOK_PHONE", granted: false },
+              { consentType: "BOOK_PHONE", granted: true },
             ],
           },
         },
