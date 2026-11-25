@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { BookOpen, Search, Shield, Users } from "lucide-react";
+import MembershipCheck from "@/components/MembershipCheck";
 
 export const instant = false;
 
@@ -74,6 +75,8 @@ export default async function HomePage() {
           <div className="mt-1 text-sm font-medium text-stone-600">ပြည်ပ နေထိုင်သူများ</div>
         </div>
       </section>
+
+      <MembershipCheck />
 
       {/* Trust & Privacy Guarantees */}
       <p className="mt-8 text-center text-sm leading-relaxed text-stone-600">
