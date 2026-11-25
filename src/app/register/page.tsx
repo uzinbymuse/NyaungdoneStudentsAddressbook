@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { COUNTRIES, DORMITORY_SUGGESTIONS, MYANMAR_REGIONS } from "@/lib/mimu-locations";
+import { COUNTRIES, MYANMAR_REGIONS } from "@/lib/mimu-locations";
+import { DORMITORY_OTHER, fetchDormitoryNames } from "@/lib/dormitories";
 import { AlertTriangle, CheckCircle2, Eye, EyeOff, Lock } from "lucide-react";
 
 export default function RegisterPage() {
@@ -18,7 +19,7 @@ export default function RegisterPage() {
     degreeName: "",
     batchYearDisplay: "",
     batchYearApprox: false,
-    dormitory: DORMITORY_SUGGESTIONS[0],
+    dormitory: DORMITORY_OTHER,
     dormitoryOther: "",
     stayPeriod: "",
     countryCode: "MM",
@@ -54,6 +55,22 @@ export default function RegisterPage() {
   const isDomestic = form.countryCode === "MM";
   const townships = MYANMAR_REGIONS[form.region] || [];
 
+  // Dormitory list comes from the database (admin-managed). With an empty
+  // list the form still works: only "အခြား" (free text) is offered.
+  const [dormitoryOptions, setDormitoryOptions] = useState<string[]>([]);
+  useEffect(() => {
+    fetchDormitoryNames().then((names) => {
+      setDormitoryOptions(names);
+      if (names.length > 0) {
+        setForm((prev) =>
+          prev.dormitory === DORMITORY_OTHER && !prev.dormitoryOther
+            ? { ...prev, dormitory: names[0] }
+            : prev
+        );
+      }
+    });
+  }, []);
+
   function handleRegionChange(newRegion: string) {
     const nextTownships = MYANMAR_REGIONS[newRegion] || [];
     setForm((prev) => ({
@@ -68,7 +85,7 @@ export default function RegisterPage() {
     setError("");
     setLoading(true);
 
-    const finalDorm = form.dormitory === "အခြား" ? form.dormitoryOther : form.dormitory;
+    const finalDorm = form.dormitory === DORMITORY_OTHER ? form.dormitoryOther : form.dormitory;
 
     try {
       const res = await fetch("/api/register", {
@@ -222,13 +239,13 @@ export default function RegisterPage() {
                   onChange={(e) => setForm({ ...form, dormitory: e.target.value })}
                   className="mt-1.5 w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-base"
                 >
-                  {DORMITORY_SUGGESTIONS.map((d) => (
+                  {[...dormitoryOptions, DORMITORY_OTHER].map((d) => (
                     <option key={d} value={d}>
                       {d}
                     </option>
                   ))}
                 </select>
-                {form.dormitory === "အခြား" && (
+                {form.dormitory === DORMITORY_OTHER && (
                   <input
                     type="text"
                     required

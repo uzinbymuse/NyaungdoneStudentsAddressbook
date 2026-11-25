@@ -10,22 +10,31 @@ import {
   Download,
   FileSpreadsheet,
   KeyRound,
+  Pencil,
   Printer,
   ShieldAlert,
   Upload,
   X,
 } from "lucide-react";
+import { COUNTRIES } from "@/lib/mimu-locations";
+import { DORMITORY_OTHER } from "@/lib/dormitories";
 
 interface AdminAlumni {
   id: string;
   userId?: string | null;
   alumniCode: string;
+  monkOrLay: string;
   fullName: string;
   formerName?: string | null;
   degreeName?: string | null;
   batchYearDisplay: string;
+  batchYearMm?: number | null;
+  batchYearApprox?: boolean;
   dormitory: string;
+  stayPeriod?: string | null;
   currentRoleOrMonastery: string;
+  messageToAlumni?: string | null;
+  countryCode?: string;
   countryName: string;
   isDomestic: boolean;
   region?: string | null;
@@ -33,13 +42,64 @@ interface AdminAlumni {
   city: string;
   wardOrVillage?: string | null;
   phonePrimary?: string | null;
-  bookConsent: boolean;
+  phoneSecondary?: string | null;
+  viber?: string | null;
+  telegram?: string | null;
+  email?: string | null;
+  facebook?: string | null;
+  showPhoneWeb?: boolean;
+  showViberTgWeb?: boolean;
+  showEmailFbWeb?: boolean;
+  showWardWeb?: boolean;
   showPhonePrint: boolean;
+  showWardPrint?: boolean;
+  bookConsent: boolean;
   referrerName?: string | null;
   bestContactTime?: string | null;
   adminNote?: string | null;
   profileStatus: string;
   isPotentialDuplicate: boolean;
+}
+
+interface DormitoryItem {
+  id: string;
+  name: string;
+  sortOrder: number;
+  isActive: boolean;
+}
+
+interface EditFormState {
+  monkOrLay: string;
+  fullName: string;
+  formerName: string;
+  degreeName: string;
+  batchYearDisplay: string;
+  batchYearApprox: boolean;
+  dormitory: string;
+  dormitoryOther: string;
+  stayPeriod: string;
+  currentRoleOrMonastery: string;
+  messageToAlumni: string;
+  countryCode: string;
+  countryName: string;
+  countryOther: string;
+  region: string;
+  township: string;
+  city: string;
+  wardOrVillage: string;
+  phonePrimary: string;
+  phoneSecondary: string;
+  viber: string;
+  telegram: string;
+  email: string;
+  facebook: string;
+  showPhoneWeb: boolean;
+  showViberTgWeb: boolean;
+  showEmailFbWeb: boolean;
+  showWardWeb: boolean;
+  showPhonePrint: boolean;
+  showWardPrint: boolean;
+  adminNote: string;
 }
 
 interface CorrectionItem {
@@ -66,7 +126,7 @@ interface PrintEntry {
 }
 
 export default function AdminDashboardPage() {
-  const [tab, setTab] = useState<"PENDING" | "ALL" | "DUPLICATES" | "CORRECTIONS" | "PRINT" | "IMPORT" | "LOGS">("PENDING");
+  const [tab, setTab] = useState<"PENDING" | "ALL" | "DUPLICATES" | "CORRECTIONS" | "PRINT" | "IMPORT" | "LOGS" | "DORMITORIES">("PENDING");
   const [stats, setStats] = useState({
     total: 0,
     verified: 0,
@@ -92,6 +152,31 @@ export default function AdminDashboardPage() {
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
 
+  // Dormitory list management (admin-managed, DB-backed; may be empty)
+  const [dormitories, setDormitories] = useState<DormitoryItem[]>([]);
+  const [newDormName, setNewDormName] = useState("");
+  const [renamingDorm, setRenamingDorm] = useState<{ id: string; name: string } | null>(null);
+
+  // Admin direct edit of one alumni record
+  const [editTarget, setEditTarget] = useState<AdminAlumni | null>(null);
+  const [editForm, setEditForm] = useState<EditFormState | null>(null);
+  const [editError, setEditError] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
+
+  const activeDormitoryNames = dormitories.filter((d) => d.isActive).map((d) => d.name);
+
+  async function loadDormitories() {
+    try {
+      const res = await fetch("/api/admin/dormitories");
+      if (res.ok) {
+        const data = await res.json();
+        setDormitories(data.dormitories || []);
+      }
+    } catch {
+      // Dormitory list is optional for the rest of the panel.
+    }
+  }
+
   async function loadDashboard() {
     setError("");
     const [ovRes, pubRes] = await Promise.all([
@@ -111,6 +196,7 @@ export default function AdminDashboardPage() {
     if (pubRes.ok) {
       setPrintData(await pubRes.json());
     }
+    loadDormitories();
   }
 
   useEffect(() => {
@@ -132,6 +218,100 @@ export default function AdminDashboardPage() {
         setNotice("ဆောင်ရွက်ချက် အောင်မြင်ပါသည်။");
       }
       loadDashboard();
+    }
+  }
+
+  async function runDormitoryAction(
+    method: "POST" | "PATCH" | "DELETE",
+    payload?: Record<string, unknown>
+  ) {
+    setNotice("");
+    const url =
+      method === "DELETE" && payload?.id
+        ? `/api/admin/dormitories?id=${payload.id}`
+        : "/api/admin/dormitories";
+    const res = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: method === "DELETE" ? undefined : JSON.stringify(payload || {}),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      setDormitories(data.dormitories || []);
+      setNotice("ကျောင်းဆောင်စာရင်း ပြင်ဆင်ပြီးပါပြီ။");
+    } else {
+      setNotice(data.error || "ကျောင်းဆောင်စာရင်း ပြင်ဆင်ရာတွင် အမှားအယွင်း ဖြစ်ပွားပါသည်။");
+    }
+  }
+
+  function openEdit(item: AdminAlumni) {
+    const inList = activeDormitoryNames.includes(item.dormitory);
+    setEditTarget(item);
+    setEditError("");
+    setEditForm({
+      monkOrLay: item.monkOrLay || "MONK",
+      fullName: item.fullName || "",
+      formerName: item.formerName || "",
+      degreeName: item.degreeName || "",
+      batchYearDisplay: item.batchYearDisplay || "",
+      batchYearApprox: Boolean(item.batchYearApprox),
+      dormitory: inList ? item.dormitory : DORMITORY_OTHER,
+      dormitoryOther: inList ? "" : item.dormitory || "",
+      stayPeriod: item.stayPeriod || "",
+      currentRoleOrMonastery: item.currentRoleOrMonastery || "",
+      messageToAlumni: item.messageToAlumni || "",
+      countryCode: item.countryCode || "MM",
+      countryName: item.countryName || "မြန်မာ",
+      countryOther: "",
+      region: item.region || "",
+      township: item.township || "",
+      city: item.city || "",
+      wardOrVillage: item.wardOrVillage || "",
+      phonePrimary: item.phonePrimary || "",
+      phoneSecondary: item.phoneSecondary || "",
+      viber: item.viber || "",
+      telegram: item.telegram || "",
+      email: item.email || "",
+      facebook: item.facebook || "",
+      showPhoneWeb: Boolean(item.showPhoneWeb),
+      showViberTgWeb: Boolean(item.showViberTgWeb),
+      showEmailFbWeb: Boolean(item.showEmailFbWeb),
+      showWardWeb: item.showWardWeb !== false,
+      showPhonePrint: Boolean(item.showPhonePrint),
+      showWardPrint: item.showWardPrint !== false,
+      adminNote: item.adminNote || "",
+    });
+  }
+
+  async function saveEdit() {
+    if (!editTarget || !editForm) return;
+    setEditError("");
+    setEditSaving(true);
+    try {
+      const res = await fetch("/api/admin/alumni", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "ADMIN_EDIT",
+          alumniId: editTarget.id,
+          fields: editForm,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setEditError(data.error || "ပြင်ဆင်ရာတွင် အမှားအယွင်း ဖြစ်ပွားပါသည်။");
+        return;
+      }
+      setNotice(
+        `ပြင်ဆင်ပြီးပါပြီ။${data.changedFields?.length ? ` (${data.changedFields.join(", ")})` : ""}`
+      );
+      setEditTarget(null);
+      setEditForm(null);
+      loadDashboard();
+    } catch {
+      setEditError("ချိတ်ဆက်မှု အမှားအယွင်း ဖြစ်ပွားပါသည်။");
+    } finally {
+      setEditSaving(false);
     }
   }
 
@@ -239,6 +419,10 @@ export default function AdminDashboardPage() {
 
   const pendingList = alumniList.filter((a) => a.profileStatus === "PENDING");
   const duplicateList = alumniList.filter((a) => a.isPotentialDuplicate);
+  const inp = "mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm";
+  const lbl = "block text-xs font-bold text-stone-700";
+  const setEdit = (patch: Partial<EditFormState>) =>
+    setEditForm((prev) => (prev ? { ...prev, ...patch } : prev));
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-8">
@@ -316,6 +500,7 @@ export default function AdminDashboardPage() {
           { id: "CORRECTIONS", label: `Corrections (${corrections.length})` },
           { id: "PRINT", label: "Print Book Export" },
           { id: "IMPORT", label: "Batch CSV Import" },
+          { id: "DORMITORIES", label: `ကျောင်းဆောင် (${dormitories.length})` },
           { id: "LOGS", label: "Audit Logs" },
         ].map((t) => (
           <button
@@ -379,6 +564,12 @@ export default function AdminDashboardPage() {
                   </div>
 
                   <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => openEdit(item)}
+                      className="inline-flex items-center gap-1 rounded-lg bg-stone-900 px-3 py-1.5 text-xs font-bold text-white hover:bg-stone-700"
+                    >
+                      <Pencil className="h-3.5 w-3.5" /> ပြင်ဆင်မည်
+                    </button>
                     {item.profileStatus !== "VERIFIED" && (
                       <button
                         onClick={() => runAlumniAction({ action: "APPROVE", alumniId: item.id })}
@@ -544,7 +735,7 @@ export default function AdminDashboardPage() {
             rows={6}
             value={csvText}
             onChange={(e) => setCsvText(e.target.value)}
-            placeholder="အရှင်ကုသလ, ၁၃၆၅, ပင်မကျောင်းဆောင်, ရန်ကုန်, 09790001122, စာချ"
+            placeholder="အရှင်ကုသလ, ၁၃၆၅, ကျောင်းဆောင်အမည်, ရန်ကုန်, 09790001122, စာချ"
             className="mt-3 w-full rounded-xl border border-stone-300 p-3 font-mono text-xs"
           />
           <button
@@ -553,6 +744,167 @@ export default function AdminDashboardPage() {
           >
             Import as Pending
           </button>
+        </div>
+      )}
+
+      {/* Tab Content: DORMITORIES */}
+      {tab === "DORMITORIES" && (
+        <div className="rounded-2xl border border-stone-200 bg-white p-6">
+          <h2 className="text-lg font-bold text-stone-900">ကျောင်းဆောင်စာရင်း စီမံခန့်ခွဲရန်</h2>
+          <p className="mt-1 text-sm text-stone-600">
+            စာရင်းသွင်းဖောင်နှင့် Directory ရှာဖွေမှုတွင် ပြမည့် ကျောင်းဆောင်အမည်များ။ စာရင်း ဗလာဖြစ်နေလည်း
+            ရပါသည် — ထိုအခါ &ldquo;အခြား&rdquo; ဖြင့် အမည်ကို ကိုယ်တိုင် ရေးထည့်နိုင်သည်။ အမည်ပြင်လိုက်လျှင် ထို
+            ကျောင်းဆောင်တွင် နေခဲ့ဖူးသော ကျောင်းသားဟောင်းအားလုံး၏ မှတ်တမ်းပါ အမည်သစ်ဖြင့် လိုက်ပြောင်းပေးမည်။
+            ဖျောက်ထားခြင်း / ဖျက်ခြင်းသည် ကျောင်းသားမှတ်တမ်းကို လုံးဝ မထိခိုက်ပါ။
+          </p>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            <input
+              type="text"
+              value={newDormName}
+              onChange={(e) => setNewDormName(e.target.value)}
+              placeholder="ကျောင်းဆောင်အမည် အသစ် ရေးပါ"
+              className="min-w-64 flex-1 rounded-xl border border-stone-300 px-3 py-2 text-sm"
+            />
+            <button
+              onClick={() => {
+                if (!newDormName.trim()) return;
+                runDormitoryAction("POST", { action: "CREATE", name: newDormName });
+                setNewDormName("");
+              }}
+              className="rounded-xl bg-stone-900 px-4 py-2 text-sm font-bold text-white"
+            >
+              အသစ်ထည့်မည်
+            </button>
+          </div>
+
+          {dormitories.length === 0 && (
+            <p className="mt-4 rounded-xl bg-stone-50 p-4 text-center text-sm text-stone-500">
+              ကျောင်းဆောင်စာရင်း ဗလာဖြစ်နေပါသည်။ အထက်မှ အမည်အသစ် ထည့်သွင်းပါ။
+            </p>
+          )}
+
+          <div className="mt-4 space-y-2">
+            {dormitories.map((d, index) => {
+              const inUse = alumniList.filter((a) => a.dormitory === d.name).length;
+              return (
+                <div
+                  key={d.id}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-stone-200 p-3"
+                >
+                  <div>
+                    {renamingDorm?.id === d.id ? (
+                      <span className="flex flex-wrap gap-2">
+                        <input
+                          type="text"
+                          value={renamingDorm.name}
+                          onChange={(e) =>
+                            setRenamingDorm({ id: d.id, name: e.target.value })
+                          }
+                          className="rounded-lg border border-stone-300 px-2 py-1 text-sm"
+                        />
+                        <button
+                          onClick={() => {
+                            runDormitoryAction("PATCH", {
+                              action: "RENAME",
+                              id: d.id,
+                              name: renamingDorm.name,
+                            });
+                            setRenamingDorm(null);
+                          }}
+                          className="rounded-lg bg-emerald-700 px-3 py-1 text-xs font-bold text-white"
+                        >
+                          သိမ်းမည်
+                        </button>
+                        <button
+                          onClick={() => setRenamingDorm(null)}
+                          className="rounded-lg border border-stone-300 px-3 py-1 text-xs font-bold"
+                        >
+                          မလုပ်တော့
+                        </button>
+                      </span>
+                    ) : (
+                      <span className="font-bold text-stone-900">
+                        {d.name}
+                        {!d.isActive && (
+                          <span className="ml-2 rounded bg-stone-200 px-2 py-0.5 text-xs font-bold text-stone-600">
+                            ဖျောက်ထားသည်
+                          </span>
+                        )}
+                      </span>
+                    )}
+                    <span className="ml-3 text-xs text-stone-500">သုံးနေသူ {inUse} ဦး</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => setRenamingDorm({ id: d.id, name: d.name })}
+                      className="rounded-lg border border-stone-300 px-3 py-1.5 text-xs font-bold hover:bg-stone-50"
+                    >
+                      အမည်ပြင်မည်
+                    </button>
+                    <button
+                      onClick={() => {
+                        const next = [...dormitories];
+                        const target = index - 1;
+                        if (target < 0) return;
+                        [next[index], next[target]] = [next[target], next[index]];
+                        runDormitoryAction("PATCH", {
+                          action: "REORDER",
+                          orderedIds: next.map((x) => x.id),
+                        });
+                      }}
+                      disabled={index === 0}
+                      className="rounded-lg border border-stone-300 px-2 py-1.5 text-xs font-bold hover:bg-stone-50 disabled:opacity-40"
+                    >
+                      ↑
+                    </button>
+                    <button
+                      onClick={() => {
+                        const next = [...dormitories];
+                        const target = index + 1;
+                        if (target >= next.length) return;
+                        [next[index], next[target]] = [next[target], next[index]];
+                        runDormitoryAction("PATCH", {
+                          action: "REORDER",
+                          orderedIds: next.map((x) => x.id),
+                        });
+                      }}
+                      disabled={index === dormitories.length - 1}
+                      className="rounded-lg border border-stone-300 px-2 py-1.5 text-xs font-bold hover:bg-stone-50 disabled:opacity-40"
+                    >
+                      ↓
+                    </button>
+                    <button
+                      onClick={() =>
+                        runDormitoryAction("PATCH", {
+                          action: "SET_ACTIVE",
+                          id: d.id,
+                          isActive: !d.isActive,
+                        })
+                      }
+                      className="rounded-lg border border-amber-700 px-3 py-1.5 text-xs font-bold text-amber-900 hover:bg-amber-50"
+                    >
+                      {d.isActive ? "ဖျောက်ထားမည်" : "ပြန်ဖော်မည်"}
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (
+                          window.confirm(
+                            `“${d.name}” ကို စာရင်းမှ ဖျက်မည်လား။ ကျောင်းသားမှတ်တမ်းများမပျက်ပါ။`
+                          )
+                        ) {
+                          runDormitoryAction("DELETE", { id: d.id });
+                        }
+                      }}
+                      className="rounded-lg border border-red-300 px-3 py-1.5 text-xs font-bold text-red-700 hover:bg-red-50"
+                    >
+                      ဖျက်မည်
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -569,6 +921,311 @@ export default function AdminDashboardPage() {
                 <span className="text-stone-500">{new Date(l.createdAt).toLocaleString()}</span>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Admin Edit modal */}
+      {editTarget && editForm && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4">
+          <div className="my-8 w-full max-w-3xl rounded-3xl bg-white p-6 shadow-xl">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-xl font-bold text-stone-900">
+                  ပြင်ဆင်မည် — [{editTarget.alumniCode}] {editTarget.fullName}
+                </h2>
+                <p className="mt-1 text-xs text-stone-600">
+                  အခြေအနေ ({editTarget.profileStatus}) ကို မထိခိုက်ပါ — PENDING ဖြစ်နေလျှင် ပြင်ပြီးလည်း
+                  PENDING အတိုင်းပဲ ကျန်မည်။ Approve ကို သပ်သပ် လုပ်ရမည်။
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setEditTarget(null);
+                  setEditForm(null);
+                }}
+                className="rounded-lg border border-stone-300 px-3 py-1.5 text-sm font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            {editError && (
+              <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-800">
+                {editError}
+              </div>
+            )}
+
+            <div className="mt-5 space-y-5">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className={lbl}>ရဟန်း / လူ</label>
+                  <select
+                    value={editForm.monkOrLay}
+                    onChange={(e) => setEdit({ monkOrLay: e.target.value })}
+                    className={inp}
+                  >
+                    <option value="MONK">ရဟန်း</option>
+                    <option value="LAY">လူ</option>
+                    <option value="NUN">သီလရှင်</option>
+                    <option value="OTHER">အခြား</option>
+                  </select>
+                </div>
+                <div>
+                  <label className={lbl}>အမည် *</label>
+                  <input
+                    value={editForm.fullName}
+                    onChange={(e) => setEdit({ fullName: e.target.value })}
+                    className={inp}
+                  />
+                </div>
+                <div>
+                  <label className={lbl}>ယခင်အမည်</label>
+                  <input
+                    value={editForm.formerName}
+                    onChange={(e) => setEdit({ formerName: e.target.value })}
+                    className={inp}
+                  />
+                </div>
+                <div>
+                  <label className={lbl}>ဘွဲ့</label>
+                  <input
+                    value={editForm.degreeName}
+                    onChange={(e) => setEdit({ degreeName: e.target.value })}
+                    className={inp}
+                  />
+                </div>
+                <div>
+                  <label className={lbl}>ဘွဲ့ရနှစ် (မြန်မာသက္ကရာဇ်)</label>
+                  <input
+                    value={editForm.batchYearDisplay}
+                    onChange={(e) => setEdit({ batchYearDisplay: e.target.value })}
+                    className={inp}
+                  />
+                  <label className="mt-2 flex items-center gap-2 text-xs text-stone-600">
+                    <input
+                      type="checkbox"
+                      checked={editForm.batchYearApprox}
+                      onChange={(e) => setEdit({ batchYearApprox: e.target.checked })}
+                      className="h-4 w-4 accent-amber-800"
+                    />
+                    ခန့်မှန်းနှစ် ဖြစ်ပါသည်
+                  </label>
+                </div>
+                <div>
+                  <label className={lbl}>နေခဲ့သော ကျောင်းဆောင် *</label>
+                  <select
+                    value={editForm.dormitory}
+                    onChange={(e) => setEdit({ dormitory: e.target.value })}
+                    className={inp}
+                  >
+                    {[...activeDormitoryNames, DORMITORY_OTHER].map((d) => (
+                      <option key={d} value={d}>
+                        {d}
+                      </option>
+                    ))}
+                  </select>
+                  {editForm.dormitory === DORMITORY_OTHER && (
+                    <input
+                      value={editForm.dormitoryOther}
+                      onChange={(e) => setEdit({ dormitoryOther: e.target.value })}
+                      placeholder="ကျောင်းဆောင်အမည် ရေးပါ"
+                      className={`${inp} mt-2`}
+                    />
+                  )}
+                </div>
+                <div>
+                  <label className={lbl}>ကျောင်းတွင် နေခဲ့သော ခုနှစ် (မှ — အထိ)</label>
+                  <input
+                    value={editForm.stayPeriod}
+                    onChange={(e) => setEdit({ stayPeriod: e.target.value })}
+                    className={inp}
+                  />
+                </div>
+                <div>
+                  <label className={lbl}>လက်ရှိ ကျောင်းတိုက် / တာဝန် *</label>
+                  <input
+                    value={editForm.currentRoleOrMonastery}
+                    onChange={(e) => setEdit({ currentRoleOrMonastery: e.target.value })}
+                    className={inp}
+                  />
+                </div>
+                <div>
+                  <label className={lbl}>နိုင်ငံ</label>
+                  <select
+                    value={editForm.countryCode}
+                    onChange={(e) => {
+                      const code = e.target.value;
+                      const found = COUNTRIES.find((c) => c.code === code);
+                      setEdit({
+                        countryCode: code,
+                        countryName: code === "OTHER" ? editForm.countryName : found?.nameMm || "",
+                      });
+                    }}
+                    className={inp}
+                  >
+                    {COUNTRIES.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.nameMm}
+                      </option>
+                    ))}
+                  </select>
+                  {editForm.countryCode === "OTHER" && (
+                    <input
+                      value={editForm.countryOther || editForm.countryName}
+                      onChange={(e) =>
+                        setEdit({ countryOther: e.target.value, countryName: e.target.value })
+                      }
+                      placeholder="နိုင်ငံအမည် ရေးပါ"
+                      className={`${inp} mt-2`}
+                    />
+                  )}
+                </div>
+                <div>
+                  <label className={lbl}>တိုင်းဒေသကြီး / ပြည်နယ်</label>
+                  <input
+                    value={editForm.region}
+                    onChange={(e) => setEdit({ region: e.target.value })}
+                    className={inp}
+                  />
+                </div>
+                <div>
+                  <label className={lbl}>မြို့နယ်</label>
+                  <input
+                    value={editForm.township}
+                    onChange={(e) => setEdit({ township: e.target.value })}
+                    className={inp}
+                  />
+                </div>
+                <div>
+                  <label className={lbl}>မြို့ *</label>
+                  <input
+                    value={editForm.city}
+                    onChange={(e) => setEdit({ city: e.target.value })}
+                    className={inp}
+                  />
+                </div>
+                <div>
+                  <label className={lbl}>ရွာ / ရပ်ကွက်</label>
+                  <input
+                    value={editForm.wardOrVillage}
+                    onChange={(e) => setEdit({ wardOrVillage: e.target.value })}
+                    className={inp}
+                  />
+                </div>
+                <div>
+                  <label className={lbl}>ဖုန်း (အဓိက) *</label>
+                  <input
+                    value={editForm.phonePrimary}
+                    onChange={(e) => setEdit({ phonePrimary: e.target.value })}
+                    className={inp}
+                  />
+                </div>
+                <div>
+                  <label className={lbl}>ဖုန်း (ဒုတိယ)</label>
+                  <input
+                    value={editForm.phoneSecondary}
+                    onChange={(e) => setEdit({ phoneSecondary: e.target.value })}
+                    className={inp}
+                  />
+                </div>
+                <div>
+                  <label className={lbl}>Viber</label>
+                  <input
+                    value={editForm.viber}
+                    onChange={(e) => setEdit({ viber: e.target.value })}
+                    className={inp}
+                  />
+                </div>
+                <div>
+                  <label className={lbl}>Telegram</label>
+                  <input
+                    value={editForm.telegram}
+                    onChange={(e) => setEdit({ telegram: e.target.value })}
+                    className={inp}
+                  />
+                </div>
+                <div>
+                  <label className={lbl}>Email</label>
+                  <input
+                    value={editForm.email}
+                    onChange={(e) => setEdit({ email: e.target.value })}
+                    className={inp}
+                  />
+                </div>
+                <div>
+                  <label className={lbl}>Facebook</label>
+                  <input
+                    value={editForm.facebook}
+                    onChange={(e) => setEdit({ facebook: e.target.value })}
+                    className={inp}
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className={lbl}>ကျောင်းသားဟောင်းများထံ ပေးလိုသော စကား</label>
+                  <textarea
+                    rows={2}
+                    value={editForm.messageToAlumni}
+                    onChange={(e) => setEdit({ messageToAlumni: e.target.value })}
+                    className={inp}
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className={lbl}>Admin မှတ်ချက် (Admin သာ မြင်ရမည်)</label>
+                  <textarea
+                    rows={2}
+                    value={editForm.adminNote}
+                    onChange={(e) => setEdit({ adminNote: e.target.value })}
+                    className={inp}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm font-bold text-stone-800">မြင်နိုင်ခွင့် ရွေးချယ်မှု</p>
+                <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                  {(
+                    [
+                      ["showPhoneWeb", "ဖုန်း — Web မှာ ပြမည်"],
+                      ["showViberTgWeb", "Viber / Telegram — Web မှာ ပြမည်"],
+                      ["showEmailFbWeb", "Email / Facebook — Web မှာ ပြမည်"],
+                      ["showWardWeb", "ရွာ / ရပ်ကွက် — Web မှာ ပြမည်"],
+                      ["showPhonePrint", "ဖုန်း — Print စာအုပ်မှာ ပြမည်"],
+                      ["showWardPrint", "ရွာ / ရပ်ကွက် — Print စာအုပ်မှာ ပြမည်"],
+                    ] as Array<[keyof EditFormState, string]>
+                  ).map(([key, label]) => (
+                    <label key={key} className="flex items-center gap-2 text-sm text-stone-700">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(editForm[key])}
+                        onChange={(e) => setEdit({ [key]: e.target.checked } as Partial<EditFormState>)}
+                        className="h-4 w-4 accent-amber-800"
+                      />
+                      {label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={saveEdit}
+                  disabled={editSaving}
+                  className="rounded-xl bg-stone-900 px-5 py-2.5 text-sm font-bold text-white disabled:opacity-50"
+                >
+                  {editSaving ? "သိမ်းနေပါသည်…" : "သိမ်းဆည်းမည်"}
+                </button>
+                <button
+                  onClick={() => {
+                    setEditTarget(null);
+                    setEditForm(null);
+                  }}
+                  className="rounded-xl border border-stone-300 px-5 py-2.5 text-sm font-bold"
+                >
+                  မလုပ်တော့
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

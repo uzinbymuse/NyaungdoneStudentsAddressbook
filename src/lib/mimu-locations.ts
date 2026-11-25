@@ -97,11 +97,7 @@ export const MYANMAR_REGIONS: Record<string, string[]> = {
   ],
 };
 
-export const DORMITORY_SUGGESTIONS: string[] = [
-  "ပင်မကျောင်းဆောင်",
-  "သာသနာ့ရက္ခိတဆောင်",
-  "ဇေယျဝတီဆောင်",
-  "ဓမ္မာစရိယဆောင်",
-  "မဟာဝိဇ္ဇာဆောင်",
-  "အခြား",
-];
+// NOTE: The Dormitory table intentionally starts EMPTY. Do not seed any
+// dormitory names here — the admin adds them via the admin panel
+// (/admin → "ကျောင်းဆောင်" tab) after deploy. The register form and the
+// directory filter work with an empty list ("အခြား" free text only).

@@ -2,7 +2,7 @@ import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
-import { encryptField, hashToken, hmacLookup } from "@/lib/crypto";
+import { encryptField, hashToken, hmacLookup, decryptField } from "@/lib/crypto";
 import {
   buildSearchNameKey,
   normalizeMyanmarText,
@@ -10,6 +10,7 @@ import {
   toWesternDigits,
 } from "@/lib/myanmar-utils";
 import { generateNextAlumniCode } from "@/lib/alumni-code";
+import { COUNTRIES } from "@/lib/mimu-locations";
 import { logAudit } from "@/lib/audit";
 
 export async function POST(req: NextRequest) {
@@ -130,6 +131,31 @@ export async function POST(req: NextRequest) {
       if (p.wardOrVillage !== undefined) {
         updateFields.wardOrVillage = normalizeMyanmarText(p.wardOrVillage || "");
       }
+      if (p.dormitory) {
+        updateFields.dormitory = normalizeMyanmarText(p.dormitory);
+      }
+      if (p.batchYearDisplay) {
+        updateFields.batchYearDisplay = normalizeMyanmarText(p.batchYearDisplay);
+        const batchDigits = toWesternDigits(p.batchYearDisplay).match(/\d{4}/);
+        updateFields.batchYearMm = batchDigits ? parseInt(batchDigits[0], 10) : null;
+      }
+      if (p.countryCode) {
+        const cc = String(p.countryCode).trim();
+        updateFields.countryCode = cc;
+        updateFields.isDomestic = cc === "MM";
+        if (p.countryName) {
+          updateFields.countryName = normalizeMyanmarText(p.countryName);
+        } else {
+          const countryObj = COUNTRIES.find((c) => c.code === cc);
+          if (countryObj) updateFields.countryName = countryObj.nameMm;
+        }
+      }
+      if (p.region !== undefined) {
+        updateFields.region = p.region ? normalizeMyanmarText(p.region) : null;
+      }
+      if (p.township !== undefined) {
+        updateFields.township = p.township ? normalizeMyanmarText(p.township) : null;
+      }
       if (p.phonePrimary) {
         const cleanPhone = toWesternDigits(p.phonePrimary).trim();
         updateFields.phonePrimaryEnc = encryptField(cleanPhone);
@@ -161,6 +187,193 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ ok: true });
+  }
+
+  // --- Admin direct edit of any alumni profile field. profileStatus is
+  // deliberately NOT touched: editing a PENDING record must not
+  // auto-verify it; verification stays a separate APPROVE action. ---
+  if (action === "ADMIN_EDIT") {
+    const alumniId = String(body.alumniId || "");
+    const f = (body.fields || {}) as Record<string, unknown>;
+    const existing = await prisma.alumniProfile.findUnique({ where: { id: alumniId } });
+    if (!existing) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+
+    const str = (v: unknown) => String(v ?? "");
+    const norm = (v: unknown) => normalizeMyanmarText(str(v));
+    const normOrNull = (v: unknown) => {
+      const n = norm(v);
+      return n ? n : null;
+    };
+
+    const fullName = norm(f.fullName);
+    const dormitory =
+      str(f.dormitory) === "အခြား" ? norm(f.dormitoryOther) : norm(f.dormitory);
+    const currentRoleOrMonastery = norm(f.currentRoleOrMonastery);
+    const city = norm(f.city);
+    const phonePrimary = toWesternDigits(str(f.phonePrimary)).trim();
+
+    if (!fullName || !dormitory || !currentRoleOrMonastery || !city || !phonePrimary) {
+      return NextResponse.json(
+        { error: "အမည်၊ ကျောင်းဆောင်၊ လက်ရှိတာဝန်၊ မြို့နှင့် ဖုန်းနံပါတ်တို့ကို ပြည့်စုံစွာ ဖြည့်ပါ။" },
+        { status: 400 }
+      );
+    }
+
+    const batchYearDisplay = norm(f.batchYearDisplay);
+    const batchDigits = toWesternDigits(batchYearDisplay).match(/\d{4}/);
+    const batchYearMm = batchDigits ? parseInt(batchDigits[0], 10) : null;
+
+    const countryCode = str(f.countryCode || "MM").trim();
+    const countryObj = COUNTRIES.find((c) => c.code === countryCode);
+    const countryName =
+      countryCode === "OTHER"
+        ? norm(f.countryOther || f.countryName || "အခြား")
+        : countryObj?.nameMm || norm(f.countryName) || "မြန်မာ";
+
+    const newPhoneHash = hmacLookup(normalizePhoneForHash(phonePrimary));
+    const emailRaw = str(f.email).trim().toLowerCase();
+    const oldEmail = decryptField(existing.emailEnc) || "";
+
+    // Phone / email are also the login identifiers: refuse if another
+    // account already uses the new value.
+    if (newPhoneHash !== existing.phoneLookupHash) {
+      const clash = await prisma.alumniProfile.findFirst({
+        where: { phoneLookupHash: newPhoneHash, id: { not: alumniId } },
+      });
+      if (clash) {
+        return NextResponse.json(
+          { error: "ဤဖုန်းနံပါတ်ဖြင့် အခြားမှတ်တမ်း ရှိပြီးသား ဖြစ်နေပါသည်။" },
+          { status: 409 }
+        );
+      }
+      if (existing.userId) {
+        const userClash = await prisma.user.findFirst({
+          where: { loginPhoneHash: newPhoneHash, id: { not: existing.userId } },
+        });
+        if (userClash) {
+          return NextResponse.json(
+            { error: "ဤဖုန်းနံပါတ်ဖြင့် အခြားအကောင့် ရှိပြီးသား ဖြစ်နေပါသည်။" },
+            { status: 409 }
+          );
+        }
+      }
+    }
+    if (emailRaw && emailRaw !== oldEmail) {
+      const emailClash = await prisma.user.findUnique({ where: { loginEmail: emailRaw } });
+      if (emailClash && emailClash.id !== existing.userId) {
+        return NextResponse.json(
+          { error: "ဤအီးမေးလ်ဖြင့် အခြားအကောင့် ရှိပြီးသား ဖြစ်နေပါသည်။" },
+          { status: 409 }
+        );
+      }
+    }
+
+    const monkOrLay = ["MONK", "LAY", "NUN", "OTHER"].includes(str(f.monkOrLay))
+      ? (str(f.monkOrLay) as "MONK" | "LAY" | "NUN" | "OTHER")
+      : existing.monkOrLay;
+
+    const updateData: Record<string, unknown> = {
+      monkOrLay,
+      fullName,
+      normalizedName: buildSearchNameKey(fullName),
+      formerName: normOrNull(f.formerName),
+      degreeName: normOrNull(f.degreeName),
+      batchYearDisplay,
+      batchYearMm,
+      batchYearApprox: Boolean(f.batchYearApprox),
+      dormitory,
+      stayPeriod: normOrNull(f.stayPeriod),
+      currentRoleOrMonastery,
+      messageToAlumni: normOrNull(f.messageToAlumni),
+      countryCode,
+      countryName,
+      isDomestic: countryCode === "MM",
+      region: normOrNull(f.region),
+      township: normOrNull(f.township),
+      city,
+      wardOrVillage: normOrNull(f.wardOrVillage),
+      phonePrimaryEnc: encryptField(phonePrimary),
+      phoneLookupHash: newPhoneHash,
+      phoneSecondaryEnc: encryptField(str(f.phoneSecondary)),
+      viberEnc: encryptField(str(f.viber)),
+      telegramEnc: encryptField(str(f.telegram)),
+      emailEnc: encryptField(emailRaw),
+      facebookEnc: encryptField(str(f.facebook)),
+      showPhoneWeb: Boolean(f.showPhoneWeb),
+      showViberTgWeb: Boolean(f.showViberTgWeb),
+      showEmailFbWeb: Boolean(f.showEmailFbWeb),
+      showWardWeb: Boolean(f.showWardWeb),
+      showPhonePrint: Boolean(f.showPhonePrint),
+      showWardPrint: Boolean(f.showWardPrint),
+      adminNote: normOrNull(f.adminNote),
+    };
+
+    // Changed-field list for the audit log (contacts compared decrypted).
+    const oldValues: Record<string, unknown> = {
+      monkOrLay: existing.monkOrLay,
+      fullName: existing.fullName,
+      formerName: existing.formerName,
+      degreeName: existing.degreeName,
+      batchYearDisplay: existing.batchYearDisplay,
+      batchYearMm: existing.batchYearMm,
+      batchYearApprox: existing.batchYearApprox,
+      dormitory: existing.dormitory,
+      stayPeriod: existing.stayPeriod,
+      currentRoleOrMonastery: existing.currentRoleOrMonastery,
+      messageToAlumni: existing.messageToAlumni,
+      countryCode: existing.countryCode,
+      countryName: existing.countryName,
+      region: existing.region,
+      township: existing.township,
+      city: existing.city,
+      wardOrVillage: existing.wardOrVillage,
+      phonePrimary,
+      phoneSecondary: decryptField(existing.phoneSecondaryEnc),
+      viber: decryptField(existing.viberEnc),
+      telegram: decryptField(existing.telegramEnc),
+      email: oldEmail,
+      facebook: decryptField(existing.facebookEnc),
+      showPhoneWeb: existing.showPhoneWeb,
+      showViberTgWeb: existing.showViberTgWeb,
+      showEmailFbWeb: existing.showEmailFbWeb,
+      showWardWeb: existing.showWardWeb,
+      showPhonePrint: existing.showPhonePrint,
+      showWardPrint: existing.showWardPrint,
+      adminNote: existing.adminNote,
+    };
+    const changedFields = Object.keys(updateData).filter((key) => {
+      if (key === "phonePrimaryEnc" || key === "phoneLookupHash") return false;
+      if (key === "normalizedName" || key === "isDomestic") return false;
+      const next = updateData[key];
+      const prev = oldValues[key];
+      return String(next ?? "") !== String(prev ?? "");
+    });
+    if (newPhoneHash !== existing.phoneLookupHash) changedFields.push("phonePrimary");
+
+    await prisma.$transaction(async (tx) => {
+      await tx.alumniProfile.update({ where: { id: alumniId }, data: updateData });
+      if (existing.userId) {
+        await tx.user.update({
+          where: { id: existing.userId },
+          data: {
+            loginPhoneHash: newPhoneHash,
+            loginEmail: emailRaw || null,
+          },
+        });
+      }
+    });
+
+    await logAudit({
+      actorId: admin.userId,
+      action: "ADMIN_EDIT",
+      targetType: "AlumniProfile",
+      targetId: alumniId,
+      details: { alumniCode: existing.alumniCode, changedFields },
+    });
+
+    return NextResponse.json({ ok: true, changedFields });
   }
 
   if (action === "IMPORT_BATCH_ROW") {

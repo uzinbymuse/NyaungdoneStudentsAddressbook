@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { COUNTRIES, DORMITORY_SUGGESTIONS, MYANMAR_REGIONS } from "@/lib/mimu-locations";
+import { COUNTRIES, MYANMAR_REGIONS } from "@/lib/mimu-locations";
+import { fetchDormitoryNames } from "@/lib/dormitories";
 import { Lock, Mail, MapPin, Phone, Search, Send, UserCheck, AlertCircle } from "lucide-react";
 
 interface AlumniItem {
@@ -44,6 +45,13 @@ export default function DirectoryPage() {
   const [requestTarget, setRequestTarget] = useState<AlumniItem | null>(null);
   const [requestMessage, setRequestMessage] = useState("");
   const [requestStatus, setRequestStatus] = useState("");
+
+  // Dormitory filter options come from the database (admin-managed).
+  // An empty list is fine — the filter then offers only "အားလုံး".
+  const [dormitoryOptions, setDormitoryOptions] = useState<string[]>([]);
+  useEffect(() => {
+    fetchDormitoryNames().then(setDormitoryOptions);
+  }, []);
 
   async function fetchDirectory() {
     setLoading(true);
@@ -146,7 +154,7 @@ export default function DirectoryPage() {
             className="rounded-xl border border-stone-300 bg-white px-3 py-2.5 text-sm"
           >
             <option value="">ကျောင်းဆောင်အားလုံး</option>
-            {DORMITORY_SUGGESTIONS.filter((d) => d !== "အခြား").map((d) => (
+            {dormitoryOptions.map((d) => (
               <option key={d} value={d}>
                 {d}
               </option>
