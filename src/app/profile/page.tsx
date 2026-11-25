@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BookOpen, CheckCircle2, Clock, Edit3, KeyRound, Shield, UserCheck } from "lucide-react";
+import { BookOpen, CheckCircle2, Clock, Edit3, KeyRound, UserCheck } from "lucide-react";
 
 interface ProfileData {
   id: string;
@@ -87,19 +87,6 @@ export default function ProfilePage() {
   useEffect(() => {
     loadAll();
   }, []);
-
-  async function savePrivacy(updated: Partial<ProfileData> & { consentBookPublication?: boolean }) {
-    setNotice("");
-    const res = await fetch("/api/profile", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(updated),
-    });
-    if (res.ok) {
-      setNotice("Privacy နှင့် Print ရွေးချယ်မှုများကို သိမ်းဆည်းပြီးပါပြီ။");
-      loadAll();
-    }
-  }
 
   async function confirmAccuracy() {
     const res = await fetch("/api/profile", {
@@ -287,61 +274,6 @@ export default function ProfilePage() {
             လက်ရှိတွင် Print စာအုပ်၌ ပါဝင်ရန် ရွေးချယ်ထားခြင်း မရှိသေးပါ (Web စာရင်းတွင်သာ ပါဝင်ပါမည်)။
           </p>
         )}
-      </div>
-
-      {/* Granular Privacy Controls */}
-      <div className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
-        <div className="flex items-center gap-2 text-stone-900">
-          <Shield className="h-5 w-5 text-amber-800" />
-          <h2 className="text-lg font-bold">Privacy နှင့် မြင်နိုင်ခွင့် ထိန်းချုပ်ရန်</h2>
-        </div>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <label className="flex items-center gap-3 rounded-xl border border-stone-200 p-3 text-sm">
-            <input
-              type="checkbox"
-              checked={profile.showPhoneWeb}
-              onChange={(e) => savePrivacy({ showPhoneWeb: e.target.checked })}
-              className="h-5 w-5 rounded accent-amber-800"
-            />
-            <span>Web Directory တွင် ဖုန်းပြမည်</span>
-          </label>
-          <label className="flex items-center gap-3 rounded-xl border border-stone-200 p-3 text-sm">
-            <input
-              type="checkbox"
-              checked={profile.showViberTgWeb}
-              onChange={(e) => savePrivacy({ showViberTgWeb: e.target.checked })}
-              className="h-5 w-5 rounded accent-amber-800"
-            />
-            <span>Web တွင် Viber/Telegram ပြမည်</span>
-          </label>
-          <label className="flex items-center gap-3 rounded-xl border border-stone-200 p-3 text-sm">
-            <input
-              type="checkbox"
-              checked={profile.showWardWeb}
-              onChange={(e) => savePrivacy({ showWardWeb: e.target.checked })}
-              className="h-5 w-5 rounded accent-amber-800"
-            />
-            <span>Web တွင် ရွာ/ရပ်ကွက် ပြမည်</span>
-          </label>
-          <label className="flex items-center gap-3 rounded-xl border border-stone-200 p-3 text-sm">
-            <input
-              type="checkbox"
-              checked={bookConsent}
-              onChange={(e) => savePrivacy({ consentBookPublication: e.target.checked })}
-              className="h-5 w-5 rounded accent-amber-800"
-            />
-            <span>Print စာအုပ်တွင် ထည့်သွင်းရန် သဘောတူသည်</span>
-          </label>
-          <label className="flex items-center gap-3 rounded-xl border border-stone-200 p-3 text-sm sm:col-span-2">
-            <input
-              type="checkbox"
-              checked={profile.showPhonePrint}
-              onChange={(e) => savePrivacy({ showPhonePrint: e.target.checked })}
-              className="h-5 w-5 rounded accent-amber-800"
-            />
-            <span>Print စာအုပ်တွင် ဖုန်းနံပါတ် ထည့်သွင်းရန် သဘောတူသည်</span>
-          </label>
-        </div>
       </div>
 
       {/* Incoming Contact Requests */}
