@@ -28,8 +28,15 @@ export function isLikelyZawgyi(text: string): boolean {
   // they must NOT be treated as Zawgyi evidence — the old check did,
   // and correct Unicode text was then "converted" into garbage.
   const zgSpecific = /[\u105A\u1060-\u1097\u1033\u1034\u107D-\u108A]/;
-  // In Unicode, \u1031 comes AFTER the consonant; in Zawgyi, \u1031 comes BEFORE [\u1000-\u1021]
-  const zgLeadingE = /\u1031[\u1000-\u1021]/;
+  // In Unicode, \u1031 comes AFTER its consonant, so "consonant +
+  // \u1031 + next consonant" (e.g. ဇေ + ယ in "ဇေယျာ", ရွှေ + ဘ in
+  // "ရွှေဘို") is NORMAL Unicode. It is Zawgyi order only when \u1031
+  // is NOT preceded by a consonant/medial — i.e. at the start of the
+  // string or after a space/punctuation — and followed by a consonant.
+  // The old check /\\u1031[\\u1000-\\u1021]/ matched normal Unicode
+  // too, so "ရွှေဘို" was "converted" into "ရှှဘေို" and
+  // "ဇေယျာသိင်္ဂီ" could not be fixed at all.
+  const zgLeadingE = /(^|[^\u1000-\u1021\u103B-\u103E])\u1031[\u1000-\u1021]/;
   return zgSpecific.test(text) || zgLeadingE.test(text);
 }
 
@@ -87,8 +94,16 @@ export function normalizeMyanmarText(input: string): string {
     out += singleCharMap.get(ch) ?? ch;
   }
 
-  // Reorder leading e-vowel (\u1031) after consonant (+ optional medials)
-  out = out.replace(/\u1031([\u1000-\u1021][\u103B-\u103E]*)/g, "$1\u1031");
+  // Reorder a LEADING e-vowel (\u1031) to after its consonant
+  // (+ optional medials) — only when it is at the start of the string
+  // or after a space, i.e. genuine Zawgyi order. A \u1031 that already
+  // follows its consonant (normal Unicode) must be left alone: the old
+  // pattern moved it after the NEXT consonant, turning "ရွှေဘို" into
+  // "ရှှဘေို".
+  out = out.replace(
+    /(^|\s)\u1031([\u1000-\u1021][\u103B-\u103E]*)/g,
+    "$1$2\u1031"
+  );
 
   return out.replace(/\s+/g, " ").trim();
 }
