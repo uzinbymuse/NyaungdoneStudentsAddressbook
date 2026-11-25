@@ -46,10 +46,6 @@ export default function RegisterPage() {
     referrerName: "",
     bestContactTime: "",
     printExclusionNote: "",
-    consentPolicy: false,
-    consentWebDirectory: false,
-    consentBookPublication: false,
-    consentBookPhone: false,
   });
 
   const isDomestic = form.countryCode === "MM";
@@ -621,61 +617,6 @@ export default function RegisterPage() {
                 className="mt-1 w-full rounded-xl border border-stone-300 bg-white px-3 py-2.5 text-sm"
               />
             </div>
-          </section>
-
-          {/* Consents */}
-          <section className="space-y-3 rounded-2xl border-2 border-amber-300 bg-amber-50/60 p-6">
-            <h2 className="text-xl font-bold text-stone-900">သဘောတူညီချက် (Checkbox ၄ ခု)</h2>
-
-            <label className="flex items-start gap-3 rounded-xl bg-white p-4 shadow-xs">
-              <input
-                type="checkbox"
-                required
-                checked={form.consentPolicy}
-                onChange={(e) => setForm({ ...form, consentPolicy: e.target.checked })}
-                className="mt-1 h-5 w-5 shrink-0 rounded accent-amber-800"
-              />
-              <span className="text-sm leading-relaxed text-stone-800">
-                <strong className="text-red-700">[မဖြစ်မနေ]</strong> ကိုယ်ရေးအချက်အလက် မူဝါဒများကို ဖတ်ပြီး နားလည်ပါသည်။ ကျွန်ုပ် ဖြည့်သော အချက်အလက်များသည် မှန်ကန်ပါသည်။
-              </span>
-            </label>
-
-            <label className="flex items-start gap-3 rounded-xl bg-white p-4 shadow-xs">
-              <input
-                type="checkbox"
-                required
-                checked={form.consentWebDirectory}
-                onChange={(e) => setForm({ ...form, consentWebDirectory: e.target.checked })}
-                className="mt-1 h-5 w-5 shrink-0 rounded accent-amber-800"
-              />
-              <span className="text-sm leading-relaxed text-stone-800">
-                <strong className="text-red-700">[မဖြစ်မနေ]</strong> ကျွန်ုပ်၏ အမည်၊ ဘွဲ့၊ ဘွဲ့ရနှစ်၊ ကျောင်းဆောင်၊ လက်ရှိ မြို့နှင့် နိုင်ငံ၊ လက်ရှိ တာဝန်တို့ကို အတည်ပြုပြီးသော ကျောင်းသားဟောင်းများသာ ကြည့်နိုင်သော Web စာရင်းတွင် ပြရန် သဘောတူပါသည်။
-              </span>
-            </label>
-
-            <label className="flex items-start gap-3 rounded-xl bg-white p-4 shadow-xs">
-              <input
-                type="checkbox"
-                checked={form.consentBookPublication}
-                onChange={(e) => setForm({ ...form, consentBookPublication: e.target.checked })}
-                className="mt-1 h-5 w-5 shrink-0 rounded accent-amber-800"
-              />
-              <span className="text-sm leading-relaxed text-stone-800">
-                <strong className="text-amber-800">[ရွေးချယ်ခွင့်]</strong> ကျွန်ုပ်၏ အချက်အလက်များကို Print လိပ်စာစာအုပ်တွင် ထည့်သွင်း ထုတ်ဝေရန် သဘောတူပါသည်။
-              </span>
-            </label>
-
-            <label className="flex items-start gap-3 rounded-xl bg-white p-4 shadow-xs">
-              <input
-                type="checkbox"
-                checked={form.consentBookPhone}
-                onChange={(e) => setForm({ ...form, consentBookPhone: e.target.checked })}
-                className="mt-1 h-5 w-5 shrink-0 rounded accent-amber-800"
-              />
-              <span className="text-sm leading-relaxed text-stone-800">
-                <strong className="text-amber-800">[ရွေးချယ်ခွင့်]</strong> ကျွန်ုပ်၏ ဖုန်းနံပါတ်ကို Print လိပ်စာစာအုပ်တွင် ထည့်သွင်းရန် သဘောတူပါသည်။
-              </span>
-            </label>
           </section>
 
           <button

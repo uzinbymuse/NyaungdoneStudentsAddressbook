@@ -26,13 +26,9 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
 
-    // Mandatory Consent Checkboxes
-    if (!body.consentPolicy || !body.consentWebDirectory) {
-      return NextResponse.json(
-        { error: "မဖြစ်မနေ သဘောတူရမည့် Checkbox ၂ ခုလုံးကို အမှန်ခြစ်ပေးပါ။" },
-        { status: 400 }
-      );
-    }
+    // No consent checkboxes on the form anymore (admin decision
+    // 2026-11-25): submitting the form itself implies agreement to the
+    // members-only web directory and to the print book.
 
     const fullName = normalizeMyanmarText(String(body.fullName || ""));
     const degreeName = normalizeMyanmarText(String(body.degreeName || ""));
@@ -163,7 +159,7 @@ export async function POST(req: NextRequest) {
           showViberTgWeb: Boolean(body.showViberTgWeb),
           showEmailFbWeb: Boolean(body.showEmailFbWeb),
           showWardWeb: body.showWardWeb !== false,
-          showPhonePrint: Boolean(body.consentBookPhone),
+          showPhonePrint: false, // phone is not printed unless the member enables it on their Profile page
           showWardPrint: body.showWardPrint !== false,
           adminNote: body.adminNote ? normalizeMyanmarText(String(body.adminNote)) : null,
           referrerName: body.referrerName ? normalizeMyanmarText(String(body.referrerName)) : null,
@@ -175,11 +171,15 @@ export async function POST(req: NextRequest) {
             : null,
           profileStatus: "PENDING",
           consents: {
+            // Registration implies agreement: web directory + print
+            // book are granted (so no alumnus is left out of the book);
+            // phone in print stays off by default. The member can
+            // change both later on their Profile page.
             create: [
               { consentType: "POLICY_AGREED", granted: true },
               { consentType: "WEB_DIRECTORY", granted: true },
-              { consentType: "BOOK_PUBLICATION", granted: Boolean(body.consentBookPublication) },
-              { consentType: "BOOK_PHONE", granted: Boolean(body.consentBookPhone) },
+              { consentType: "BOOK_PUBLICATION", granted: true },
+              { consentType: "BOOK_PHONE", granted: false },
             ],
           },
         },
