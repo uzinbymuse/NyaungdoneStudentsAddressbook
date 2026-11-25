@@ -15,6 +15,7 @@ interface ProfileData {
   stayPeriod?: string | null;
   currentRoleOrMonastery: string;
   countryName: string;
+  isDomestic: boolean;
   region?: string | null;
   township?: string | null;
   city: string;
@@ -239,7 +240,7 @@ export default function ProfilePage() {
             </p>
             <p className="mt-1">
               {dedupeAddressParts([
-                profile.countryName,
+                profile.isDomestic ? null : profile.countryName,
                 profile.region,
                 profile.township,
                 profile.city,
