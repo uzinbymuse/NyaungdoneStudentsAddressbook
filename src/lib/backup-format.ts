@@ -23,6 +23,9 @@ export interface BackupCounts {
   correctionRequests: number;
   contactRequests: number;
   publications: number;
+  // Index signature so a counts object is a valid Prisma InputJsonObject
+  // (used as logAudit details) — every value here is a number.
+  [key: string]: number;
 }
 
 export interface BackupDormitory {
