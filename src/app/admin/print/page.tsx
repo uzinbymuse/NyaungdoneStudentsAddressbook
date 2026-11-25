@@ -1,0 +1,113 @@
+import { redirect } from "next/navigation";
+import { requireAdmin } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { decryptField } from "@/lib/crypto";
+import { PrintTriggerButton } from "@/components/PrintTriggerButton";
+
+export const instant = false;
+
+export default async function AdminPrintBookPage() {
+  const admin = await requireAdmin();
+  if (!admin) {
+    redirect("/login");
+  }
+
+  const verified = await prisma.alumniProfile.findMany({
+    where: { profileStatus: "VERIFIED" },
+    include: { consents: true },
+    orderBy: [
+      { isDomestic: "desc" },
+      { region: "asc" },
+      { countryName: "asc" },
+      { batchYearMm: "asc" },
+      { fullName: "asc" },
+    ],
+  });
+
+  const eligible = verified.filter(
+    (p) => p.consents.find((c) => c.consentType === "BOOK_PUBLICATION")?.granted === true
+  );
+  const domestic = eligible.filter((e) => e.isDomestic);
+  const international = eligible.filter((e) => !e.isDomestic);
+
+  return (
+    <div className="mx-auto max-w-4xl bg-white p-8 text-stone-900">
+      <div className="no-print mb-6 flex items-center justify-between border-b border-stone-200 pb-4">
+        <div>
+          <h1 className="text-xl font-bold">Print-Ready Alumni Directory Preview</h1>
+          <p className="text-xs text-stone-500">
+            Browser မှ Print (Save as PDF) နှိပ်၍ စာအုပ်ပုံစံ PDF ထုတ်ယူနိုင်ပါသည်။
+          </p>
+        </div>
+        <PrintTriggerButton />
+      </div>
+
+      {/* Book Cover / Header */}
+      <div className="border-b-2 border-stone-800 pb-6 text-center">
+        <h1 className="text-2xl font-bold">ပါဠိတက္ကသိုလ် ညောင်တုန်း</h1>
+        <h2 className="mt-1 text-xl font-semibold">ကျောင်းသားဟောင်းများ လိပ်စာစာအုပ်</h2>
+        <p className="mt-2 text-sm text-stone-600">
+          (ကျောင်းသားဟောင်းများအတွက်သာ — ခွင့်ပြုချက်ရရှိသူ {eligible.length} ဦး)
+        </p>
+      </div>
+
+      {/* Part 1: Domestic */}
+      <section className="mt-8">
+        <h2 className="border-b border-stone-400 pb-2 text-lg font-bold">
+          အပိုင်း (၁) — ပြည်တွင်းနေ ကျောင်းသားဟောင်းများ ({domestic.length} ဦး)
+        </h2>
+        <div className="mt-4 space-y-4">
+          {domestic.map((p) => (
+            <div key={p.id} className="break-inside-avoid border-b border-stone-200 pb-3 text-sm">
+              <div className="font-bold">
+                [{p.alumniCode}] {p.fullName}
+                {p.degreeName ? ` (${p.degreeName})` : ""} — {p.batchYearDisplay}
+              </div>
+              <div className="text-stone-700">
+                {p.dormitory} · {p.currentRoleOrMonastery}
+              </div>
+              <div className="text-stone-700">
+                {p.region || ""}
+                {p.township ? `၊ ${p.township}` : ""}
+                {p.city ? `၊ ${p.city}` : ""}
+                {p.showWardPrint && p.wardOrVillage ? `၊ ${p.wardOrVillage}` : ""}
+              </div>
+              {p.showPhonePrint && (
+                <div className="text-stone-700">ဖုန်း: {decryptField(p.phonePrimaryEnc)}</div>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Part 2: International */}
+      <section className="mt-10 break-before-page">
+        <h2 className="border-b border-stone-400 pb-2 text-lg font-bold">
+          အပိုင်း (၂) — ပြည်ပရောက် ကျောင်းသားဟောင်းများ ({international.length} ဦး)
+        </h2>
+        <div className="mt-4 space-y-4">
+          {international.map((p) => (
+            <div key={p.id} className="break-inside-avoid border-b border-stone-200 pb-3 text-sm">
+              <div className="font-bold">
+                [{p.alumniCode}] {p.fullName}
+                {p.degreeName ? ` (${p.degreeName})` : ""} — {p.batchYearDisplay}
+              </div>
+              <div className="text-stone-700">
+                {p.dormitory} · {p.currentRoleOrMonastery}
+              </div>
+              <div className="text-stone-700">
+                {p.countryName}
+                {p.region ? `၊ ${p.region}` : ""}
+                {p.city ? `၊ ${p.city}` : ""}
+                {p.showWardPrint && p.wardOrVillage ? `၊ ${p.wardOrVillage}` : ""}
+              </div>
+              {p.showPhonePrint && (
+                <div className="text-stone-700">ဖုန်း: {decryptField(p.phonePrimaryEnc)}</div>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}

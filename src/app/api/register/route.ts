@@ -1,0 +1,217 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { hashPassword, setSessionCookie } from "@/lib/auth";
+import { encryptField, hmacLookup } from "@/lib/crypto";
+import {
+  buildSearchNameKey,
+  normalizeMyanmarText,
+  normalizePhoneForHash,
+  toWesternDigits,
+} from "@/lib/myanmar-utils";
+import { COUNTRIES } from "@/lib/mimu-locations";
+import { generateNextAlumniCode } from "@/lib/alumni-code";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { logAudit } from "@/lib/audit";
+
+export async function POST(req: NextRequest) {
+  try {
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const rl = checkRateLimit(`register:${ip}`, 5, 10 * 60 * 1000);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: "စာရင်းသွင်းမှု များနေပါသည်။ ခေတ္တစောင့်ပြီးမှ ပြန်ကြိုးစားပါ။" },
+        { status: 429 }
+      );
+    }
+
+    const body = await req.json();
+
+    // Mandatory Consent Checkboxes
+    if (!body.consentPolicy || !body.consentWebDirectory) {
+      return NextResponse.json(
+        { error: "မဖြစ်မနေ သဘောတူရမည့် Checkbox ၂ ခုလုံးကို အမှန်ခြစ်ပေးပါ။" },
+        { status: 400 }
+      );
+    }
+
+    const fullName = normalizeMyanmarText(String(body.fullName || ""));
+    const degreeName = normalizeMyanmarText(String(body.degreeName || ""));
+    const batchYearDisplay = normalizeMyanmarText(String(body.batchYearDisplay || ""));
+    const dormitory = normalizeMyanmarText(String(body.dormitory || ""));
+    const currentRoleOrMonastery = normalizeMyanmarText(String(body.currentRoleOrMonastery || ""));
+    const phonePrimary = toWesternDigits(String(body.phonePrimary || "")).trim();
+    const city = normalizeMyanmarText(String(body.city || ""));
+    const password = String(body.password || "");
+
+    if (
+      !fullName ||
+      !batchYearDisplay ||
+      !dormitory ||
+      !currentRoleOrMonastery ||
+      !phonePrimary ||
+      !city ||
+      password.length < 6
+    ) {
+      return NextResponse.json(
+        { error: "မဖြစ်မနေ ဖြည့်သွင်းရမည့် အချက်အလက်များနှင့် စကားဝှက် (အနည်းဆုံး ၆ လုံး) ကို ပြည့်စုံစွာ ဖြည့်ပါ။" },
+        { status: 400 }
+      );
+    }
+
+    const countryCode = String(body.countryCode || "MM").trim();
+    const countryObj = COUNTRIES.find((c) => c.code === countryCode);
+    const countryName =
+      countryCode === "OTHER"
+        ? normalizeMyanmarText(String(body.countryOther || "အခြား"))
+        : countryObj?.nameMm || "မြန်မာ";
+    const isDomestic = countryCode === "MM";
+
+    const region = body.region ? normalizeMyanmarText(String(body.region)) : null;
+    const township = body.township ? normalizeMyanmarText(String(body.township)) : null;
+    const wardOrVillage = body.wardOrVillage
+      ? normalizeMyanmarText(String(body.wardOrVillage))
+      : null;
+
+    if (isDomestic && !region) {
+      return NextResponse.json(
+        { error: "ပြည်တွင်းနေထိုင်သူအတွက် တိုင်းဒေသကြီး / ပြည်နယ်ကို ရွေးချယ်ပါ။" },
+        { status: 400 }
+      );
+    }
+
+    const phoneNorm = normalizePhoneForHash(phonePrimary);
+    const phoneLookupHash = hmacLookup(phoneNorm);
+
+    // Check if login phone already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { loginPhoneHash: phoneLookupHash },
+    });
+    if (existingUser) {
+      return NextResponse.json(
+        { error: "ဤဖုန်းနံပါတ်ဖြင့် စာရင်းသွင်းပြီးသား ဖြစ်နေပါသည်။ Login ဝင်၍ စစ်ဆေးပါ။" },
+        { status: 409 }
+      );
+    }
+
+    const emailRaw = String(body.email || "").trim().toLowerCase();
+    if (emailRaw) {
+      const existingEmail = await prisma.user.findUnique({
+        where: { loginEmail: emailRaw },
+      });
+      if (existingEmail) {
+        return NextResponse.json(
+          { error: "ဤအီးမေးလ်ဖြင့် စာရင်းသွင်းပြီးသား ဖြစ်နေပါသည်။ Login ဝင်၍ စစ်ဆေးပါ။" },
+          { status: 409 }
+        );
+      }
+    }
+
+    const batchDigits = toWesternDigits(batchYearDisplay).match(/\d{4}/);
+    const batchYearMm = batchDigits ? parseInt(batchDigits[0], 10) : null;
+
+    const passwordHash = await hashPassword(password);
+    const alumniCode = await generateNextAlumniCode();
+
+    const monkOrLay = ["MONK", "LAY", "NUN", "OTHER"].includes(body.monkOrLay)
+      ? body.monkOrLay
+      : "MONK";
+
+    const result = await prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({
+        data: {
+          loginPhoneHash: phoneLookupHash,
+          loginEmail: emailRaw || null,
+          passwordHash,
+          role: "MEMBER",
+          accountStatus: "ACTIVE",
+        },
+      });
+
+      const profile = await tx.alumniProfile.create({
+        data: {
+          userId: user.id,
+          alumniCode,
+          monkOrLay,
+          fullName,
+          normalizedName: buildSearchNameKey(fullName),
+          formerName: body.formerName ? normalizeMyanmarText(String(body.formerName)) : null,
+          degreeName: degreeName || null,
+          batchYearMm,
+          batchYearDisplay,
+          batchYearApprox: Boolean(body.batchYearApprox),
+          dormitory,
+          stayPeriod: body.stayPeriod ? normalizeMyanmarText(String(body.stayPeriod)) : null,
+          currentRoleOrMonastery,
+          messageToAlumni: body.messageToAlumni
+            ? normalizeMyanmarText(String(body.messageToAlumni))
+            : null,
+          countryCode,
+          countryName,
+          isDomestic,
+          region,
+          township,
+          city,
+          wardOrVillage,
+          phonePrimaryEnc: encryptField(phonePrimary)!,
+          phoneLookupHash,
+          phoneSecondaryEnc: encryptField(body.phoneSecondary),
+          viberEnc: encryptField(body.viber),
+          telegramEnc: encryptField(body.telegram),
+          emailEnc: encryptField(emailRaw),
+          facebookEnc: encryptField(body.facebook),
+          showPhoneWeb: Boolean(body.showPhoneWeb),
+          showViberTgWeb: Boolean(body.showViberTgWeb),
+          showEmailFbWeb: Boolean(body.showEmailFbWeb),
+          showWardWeb: body.showWardWeb !== false,
+          showPhonePrint: Boolean(body.consentBookPhone),
+          showWardPrint: body.showWardPrint !== false,
+          adminNote: body.adminNote ? normalizeMyanmarText(String(body.adminNote)) : null,
+          referrerName: body.referrerName ? normalizeMyanmarText(String(body.referrerName)) : null,
+          bestContactTime: body.bestContactTime
+            ? normalizeMyanmarText(String(body.bestContactTime))
+            : null,
+          printExclusionNote: body.printExclusionNote
+            ? normalizeMyanmarText(String(body.printExclusionNote))
+            : null,
+          profileStatus: "PENDING",
+          consents: {
+            create: [
+              { consentType: "POLICY_AGREED", granted: true },
+              { consentType: "WEB_DIRECTORY", granted: true },
+              { consentType: "BOOK_PUBLICATION", granted: Boolean(body.consentBookPublication) },
+              { consentType: "BOOK_PHONE", granted: Boolean(body.consentBookPhone) },
+            ],
+          },
+        },
+      });
+
+      return { user, profile };
+    });
+
+    await setSessionCookie({
+      userId: result.user.id,
+      role: "MEMBER",
+      profileStatus: "PENDING",
+      alumniId: result.profile.id,
+    });
+
+    await logAudit({
+      actorId: result.user.id,
+      action: "ALUMNI_REGISTERED",
+      targetType: "AlumniProfile",
+      targetId: result.profile.id,
+      details: { alumniCode: result.profile.alumniCode },
+    });
+
+    return NextResponse.json({
+      ok: true,
+      alumniCode: result.profile.alumniCode,
+    });
+  } catch (err) {
+    console.error("Registration error:", err);
+    return NextResponse.json(
+      { error: "စာရင်းသွင်းရာတွင် အမှားအယွင်း ဖြစ်ပွားပါသည်။" },
+      { status: 500 }
+    );
+  }
+}

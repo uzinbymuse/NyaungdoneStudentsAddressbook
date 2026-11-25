@@ -1,0 +1,208 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  MEMBER
+  ADMIN
+}
+
+enum AccountStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+}
+
+enum MonkOrLay {
+  MONK
+  LAY
+  NUN
+  OTHER
+}
+
+enum ProfileStatus {
+  PENDING
+  VERIFIED
+  NEEDS_CORRECTION
+  HIDDEN
+  MERGED
+  REJECTED
+}
+
+enum ConsentType {
+  POLICY_AGREED
+  WEB_DIRECTORY
+  BOOK_PUBLICATION
+  BOOK_PHONE
+}
+
+enum CorrectionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ContactRequestStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+model User {
+  id                  String        @id @default(uuid())
+  loginPhoneHash      String?       @unique
+  loginEmail          String?       @unique
+  passwordHash        String
+  magicTokenHash      String?       @unique
+  magicTokenExpiresAt DateTime?
+  role                UserRole      @default(MEMBER)
+  accountStatus       AccountStatus @default(PENDING)
+  lastLoginAt         DateTime?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  profile             AlumniProfile?
+  correctionRequests  CorrectionRequest[]
+  sentContactRequests ContactRequest[]
+}
+
+model AlumniProfile {
+  id                     String        @id @default(uuid())
+  userId                 String?       @unique
+  user                   User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  alumniCode             String        @unique
+  monkOrLay              MonkOrLay     @default(MONK)
+  fullName               String
+  normalizedName         String
+  formerName             String?
+  degreeName             String?
+  batchYearMm            Int?
+  batchYearDisplay       String
+  batchYearApprox        Boolean       @default(false)
+  university             String        @default("ပါဠိတက္ကသိုလ် ညောင်တုန်း")
+  dormitory              String
+  stayPeriod             String?
+  currentRoleOrMonastery String
+  messageToAlumni        String?
+  photoUrl               String?
+
+  // Current Residence (Domestic vs International determined by countryCode === "MM")
+  countryCode            String        @default("MM")
+  countryName            String        @default("မြန်မာ")
+  isDomestic             Boolean       @default(true)
+  region                 String?
+  township               String?
+  city                   String
+  wardOrVillage          String?
+
+  // Encrypted Contact Details (AES-256-GCM)
+  phonePrimaryEnc        String
+  phoneLookupHash        String
+  phoneSecondaryEnc      String?
+  viberEnc               String?
+  telegramEnc            String?
+  emailEnc               String?
+  facebookEnc            String?
+
+  // Granular Visibility Settings
+  showPhoneWeb           Boolean       @default(false)
+  showViberTgWeb         Boolean       @default(false)
+  showEmailFbWeb         Boolean       @default(false)
+  showWardWeb            Boolean       @default(true)
+  showPhonePrint         Boolean       @default(false)
+  showWardPrint          Boolean       @default(true)
+
+  // Admin-Only Fields
+  adminNote              String?
+  referrerName           String?
+  bestContactTime        String?
+  printExclusionNote     String?
+
+  // Verification & Lifecycle
+  profileStatus          ProfileStatus @default(PENDING)
+  mergedIntoId           String?
+  verifiedById           String?
+  verifiedAt             DateTime?
+  lastConfirmedAt        DateTime?
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
+
+  consents               Consent[]
+  correctionRequests     CorrectionRequest[]
+  receivedContactReqs    ContactRequest[]
+
+  @@index([normalizedName])
+  @@index([phoneLookupHash])
+  @@index([batchYearMm])
+  @@index([profileStatus])
+  @@index([isDomestic, region])
+}
+
+model Consent {
+  id            String        @id @default(uuid())
+  alumniId      String
+  alumni        AlumniProfile @relation(fields: [alumniId], references: [id], onDelete: Cascade)
+  consentType   ConsentType
+  granted       Boolean
+  policyVersion String        @default("v1.0")
+  recordedAt    DateTime      @default(now())
+
+  @@unique([alumniId, consentType])
+}
+
+model CorrectionRequest {
+  id            String           @id @default(uuid())
+  alumniId      String
+  alumni        AlumniProfile    @relation(fields: [alumniId], references: [id], onDelete: Cascade)
+  submittedById String
+  submittedBy   User             @relation(fields: [submittedById], references: [id], onDelete: Cascade)
+  proposedData  Json
+  reason        String?
+  status        CorrectionStatus @default(PENDING)
+  reviewedById  String?
+  reviewedAt    DateTime?
+  createdAt     DateTime         @default(now())
+
+  @@index([status])
+}
+
+model ContactRequest {
+  id               String               @id @default(uuid())
+  senderId         String
+  sender           User                 @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  receiverAlumniId String
+  receiverAlumni   AlumniProfile        @relation(fields: [receiverAlumniId], references: [id], onDelete: Cascade)
+  message          String
+  status           ContactRequestStatus @default(PENDING)
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+
+  @@index([receiverAlumniId, status])
+}
+
+model Publication {
+  id            String   @id @default(uuid())
+  title         String
+  frozenAt      DateTime @default(now())
+  snapshotCount Int
+  snapshotData  Json
+  createdById   String
+  createdAt     DateTime @default(now())
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  actorId    String?
+  action     String
+  targetType String
+  targetId   String?
+  details    Json?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+}
