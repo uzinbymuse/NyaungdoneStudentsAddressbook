@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { COUNTRIES, MYANMAR_REGIONS } from "@/lib/mimu-locations";
 import { DORMITORY_OTHER, fetchDormitoryNames } from "@/lib/dormitories";
-import { AlertTriangle, CheckCircle2, Eye, EyeOff, Lock } from "lucide-react";
+import { AlertTriangle, BookOpen, CheckCircle2, Eye, EyeOff, Lock } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -124,6 +124,13 @@ export default function RegisterPage() {
           </div>
         </div>
 
+        <div className="mt-4 flex items-start gap-3 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
+          <BookOpen className="mt-0.5 h-5 w-5 shrink-0" />
+          <div>
+            ဘွဲ့၊ လိပ်စာ၊ ဖုန်းနံပါတ် များကိုသာ Print AddressBook (လိပ်စာစာအုပ်) တွင် ထည့်သွင်းပါမည်။
+          </div>
+        </div>
+
         {error && (
           <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-800">
             {error}
@@ -183,7 +190,7 @@ export default function RegisterPage() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="block text-base font-semibold text-stone-800">
-                  ရရှိခဲ့သော ဘွဲ့ (သို့) ဂုဏ်ထူးဘွဲ့
+                  အမြင့်ဆုံးသင်ယူ/အောင်မြင်ခဲ့သည့် အတန်း
                 </label>
                 <input
                   type="text"
