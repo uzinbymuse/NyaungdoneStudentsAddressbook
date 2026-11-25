@@ -179,16 +179,24 @@ export default function RegisterPage() {
               />
             </div>
 
+          </section>
+
+          {/* Part B */}
+          <section className="space-y-4">
+            <h2 className="border-b border-stone-200 pb-2 text-xl font-bold text-amber-900">
+              အပိုင်း (ခ) — ကျောင်းတွင် နေခဲ့စဉ်က အချက်များ
+            </h2>
+
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="block text-base font-semibold text-stone-800">
-                  အမြင့်ဆုံးသင်ယူ/အောင်မြင်ခဲ့သည့် အတန်း
+                  အမြင့်ဆုံး သင်ယူ/အောင်ခဲ့သည့် အတန်း
                 </label>
                 <input
                   type="text"
                   value={form.degreeName}
                   onChange={(e) => setForm({ ...form, degreeName: e.target.value })}
-                  placeholder="ဥပမာ - ဓမ္မာစရိယ၊ B.A., M.A."
+                  placeholder="ဥပမာ - ကျမ်းပြီး၊ ကျမ်းစွဲ၊ အကြီးတန်း"
                   className="mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
                 />
               </div>
@@ -216,13 +224,6 @@ export default function RegisterPage() {
                 </label>
               </div>
             </div>
-          </section>
-
-          {/* Part B */}
-          <section className="space-y-4">
-            <h2 className="border-b border-stone-200 pb-2 text-xl font-bold text-amber-900">
-              အပိုင်း (ခ) — ကျောင်းတွင် နေခဲ့စဉ်က အချက်များ
-            </h2>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>

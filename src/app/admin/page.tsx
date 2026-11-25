@@ -1136,7 +1136,7 @@ export default function AdminDashboardPage() {
                   />
                 </div>
                 <div>
-                  <label className={lbl}>ဘွဲ့</label>
+                  <label className={lbl}>အမြင့်ဆုံးအတန်း</label>
                   <input
                     value={editForm.degreeName}
                     onChange={(e) => setEdit({ degreeName: e.target.value })}

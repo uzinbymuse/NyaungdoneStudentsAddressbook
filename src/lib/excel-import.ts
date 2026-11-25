@@ -32,7 +32,12 @@ export interface ImportColumn {
 export const IMPORT_COLUMNS: ImportColumn[] = [
   { key: "fullName", header: "အမည်", required: true },
   { key: "monkOrLay", header: "ရဟန်း/လူ", required: true, aliases: ["ရဟန်း / လူ"] },
-  { key: "degreeName", header: "ဘွဲ့", required: false },
+  {
+    key: "degreeName",
+    header: "အမြင့်ဆုံး သင်ယူ/အောင်ခဲ့သည့် အတန်း",
+    required: false,
+    aliases: ["ဘွဲ့"],
+  },
   {
     key: "batchYearDisplay",
     header: "ကျောင်းသို့ရောက်သည့်ခုနှစ်",
