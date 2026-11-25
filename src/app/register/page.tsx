@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { COUNTRIES, MYANMAR_REGIONS } from "@/lib/mimu-locations";
 import { DORMITORY_OTHER, fetchDormitoryNames } from "@/lib/dormitories";
-import { AlertTriangle, BookOpen, CheckCircle2, Eye, EyeOff, Lock } from "lucide-react";
+import { BookOpen, CheckCircle2, Eye, EyeOff, Lock } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -111,14 +111,6 @@ export default function RegisterPage() {
         <p className="mt-2 text-sm font-semibold text-red-700">
           * ပြထားသော အကွက်ကို မဖြစ်မနေ ဖြည့်ပေးပါဘုရား
         </p>
-
-        <div className="mt-4 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
-          <div>
-            <strong>သတိပြုရန်-</strong> မှတ်ပုံတင်အမှတ် (NRC)၊ မွေးနေ့အတိအကျ၊ ဘဏ်အကောင့်နှင့်
-            အိမ်အမှတ်အတိအကျတို့ကို <strong>လုံးဝ မတောင်းပါ</strong>။ ရွာ/ရပ်ကွက် အဆင့်သာ ရေးပါ။
-          </div>
-        </div>
 
         <div className="mt-4 flex items-start gap-3 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
           <BookOpen className="mt-0.5 h-5 w-5 shrink-0" />
