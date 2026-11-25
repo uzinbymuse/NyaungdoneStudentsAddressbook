@@ -462,7 +462,7 @@ export default function AdminDashboardPage() {
       .map((l) => l.trim())
       .filter(Boolean);
     const rows = lines.map((line) => {
-      const [fullName, batchYearDisplay, dormitory, city, phonePrimary, currentRoleOrMonastery] =
+      const [fullName, batchYearDisplay, dormitory, city, phonePrimary, currentRoleOrMonastery, birthplace] =
         line.split(",").map((c) => c.trim());
       return {
         fullName,
@@ -471,6 +471,8 @@ export default function AdminDashboardPage() {
         city,
         phonePrimary,
         currentRoleOrMonastery,
+        // 7th column, optional: old 6-column rows keep working as before.
+        birthplace,
       };
     });
     await runAlumniAction({ action: "IMPORT_BATCH_ROW", rows });
@@ -813,13 +815,13 @@ export default function AdminDashboardPage() {
           </div>
           <p className="mt-1 text-xs text-stone-600">
             တစ်ကြောင်းလျှင် တစ်ဦးနှုန်းဖြင့်{" "}
-            <code>အမည်, ဘွဲ့ရနှစ်, ကျောင်းဆောင်, မြို့, ဖုန်းနံပါတ်, လက်ရှိတာဝန်</code> ပုံစံအတိုင်း ထည့်ပါ (Zawgyi ဖြစ်ပါက Unicode သို့ အလိုအလျောက် ပြောင်းပေးပါမည်)။
+            <code>အမည်, ဘွဲ့ရနှစ်, ကျောင်းဆောင်, မြို့, ဖုန်းနံပါတ်, လက်ရှိတာဝန်, မွေးဇာတိမြို့ (ရွေးချယ်)</code> ပုံစံအတိုင်း ထည့်ပါ (Zawgyi ဖြစ်ပါက Unicode သို့ အလိုအလျောက် ပြောင်းပေးပါမည်)။ မွေးဇာတိမြို့ မပါတဲ့ အဟောင်း ၆ ကော်လံ ပုံစံလည်း ဆက်သုံးလို့ ရပါတယ်။
           </p>
           <textarea
             rows={6}
             value={csvText}
             onChange={(e) => setCsvText(e.target.value)}
-            placeholder="အရှင်ကုသလ, ၁၃၆၅, ကျောင်းဆောင်အမည်, ရန်ကုန်, 09790001122, စာချ"
+            placeholder="အရှင်ကုသလ, ၁၃၆၅, ကျောင်းဆောင်အမည်, ရန်ကုန်, 09790001122, စာချ, အရာတော်၊ မုံရွာ"
             className="mt-3 w-full rounded-xl border border-stone-300 p-3 font-mono text-xs"
           />
           <button

@@ -410,6 +410,7 @@ export async function POST(req: NextRequest) {
           alumniCode,
           fullName,
           normalizedName: buildSearchNameKey(fullName),
+          birthplace: row.birthplace ? normalizeMyanmarText(String(row.birthplace)) : "",
           degreeName: row.degreeName ? normalizeMyanmarText(String(row.degreeName)) : null,
           batchYearMm,
           batchYearDisplay,
