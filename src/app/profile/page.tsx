@@ -90,6 +90,17 @@ export default function ProfilePage() {
 
   useEffect(() => {
     loadAll();
+    // Arrived from a successful PIN change (/set-pin) — show a one-time
+    // confirmation, then drop the flag from the URL so a refresh does
+    // not show it again.
+    if (
+      new URLSearchParams(window.location.search).get("pinChanged") === "1"
+    ) {
+      setNotice(
+        "PIN ပြောင်းလဲမှု အောင်မြင်ပါသည်။ PIN အသစ်နဲ့ login ဝင်နိုင်ပါပြီ။"
+      );
+      window.history.replaceState(null, "", "/profile");
+    }
   }, []);
 
   async function submitCorrection(e: React.FormEvent) {
