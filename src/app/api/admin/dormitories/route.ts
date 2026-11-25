@@ -143,7 +143,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "orderedIds missing" }, { status: 400 });
     }
     await prisma.$transaction(
-      orderedIds.map((id, index) =>
+      orderedIds.map((id: string, index: number) =>
         prisma.dormitory.update({ where: { id }, data: { sortOrder: index } })
       )
     );
