@@ -16,11 +16,13 @@ export default function MembershipCheck() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [status, setStatus] = useState<CheckStatus | null>(null);
+  const [degree, setDegree] = useState<string | null>(null);
 
   async function handleCheck(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setStatus(null);
+    setDegree(null);
     setLoading(true);
     try {
       const res = await fetch("/api/check-membership", {
@@ -34,6 +36,7 @@ export default function MembershipCheck() {
         return;
       }
       setStatus(data.status as CheckStatus);
+      setDegree(typeof data.degree === "string" ? data.degree : null);
     } catch {
       setError("ချိတ်ဆက်မှု အမှားအယွင်း ဖြစ်ပွားပါသည်။");
     } finally {
@@ -47,7 +50,7 @@ export default function MembershipCheck() {
         ကိုယ့်အချက်အလက် စာရင်းထဲပါပြီးလား စစ်ဆေးရန်
       </h2>
       <p className="mt-1 text-sm text-stone-600">
-        ကိုယ့်ဖုန်းနံပါတ် ရိုက်ထည့်ပြီး စစ်ဆေးနိုင်ပါသည်။ အဖြေအဖြစ် ပါဝင်/မပါဝင်ကိုသာ ပြပေးပါမည်။
+        ကိုယ့်ဖုန်းနံပါတ် ရိုက်ထည့်ပြီး စစ်ဆေးနိုင်ပါသည်။ ပါဝင်ပါက ဘွဲ့ကိုပါ ပြပေးပါမည်။
       </p>
 
       <form onSubmit={handleCheck} className="mt-4 flex flex-col gap-3 sm:flex-row">
@@ -76,6 +79,11 @@ export default function MembershipCheck() {
       {status === "VERIFIED" && (
         <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
           <p className="font-bold">သင့်အချက်အလက် စာရင်းထဲမှာ ပါဝင်ပါသည်။</p>
+          {degree && (
+            <p className="mt-1">
+              ဘွဲ့ — <strong>{degree}</strong>
+            </p>
+          )}
           <p className="mt-1">
             <Link href="/login" className="font-bold underline">
               Login ဝင်ပြီး
@@ -88,6 +96,11 @@ export default function MembershipCheck() {
       {status === "PENDING" && (
         <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
           <p className="font-bold">စာရင်းတင်ပြီးပါပြီ — Admin အတည်ပြုရန် စောင့်ဆိုင်းနေပါသည်။</p>
+          {degree && (
+            <p className="mt-1">
+              ဘွဲ့ — <strong>{degree}</strong>
+            </p>
+          )}
           <p className="mt-1">
             အတည်ပြုပြီးပါက{" "}
             <Link href="/login" className="font-bold underline">
@@ -110,6 +123,11 @@ export default function MembershipCheck() {
       {status === "NEEDS_CORRECTION" && (
         <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
           <p className="font-bold">စာရင်းထဲမှာ ပါဝင်သော်လည်း ပြင်ဆင်ရန် လိုအပ်နေပါသည်။</p>
+          {degree && (
+            <p className="mt-1">
+              ဘွဲ့ — <strong>{degree}</strong>
+            </p>
+          )}
           <p className="mt-1">
             <Link href="/login" className="font-bold underline">
               Login ဝင်ပြီး

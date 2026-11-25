@@ -6,10 +6,12 @@ import { checkRateLimit } from "@/lib/rate-limit";
 
 // Public "am I already in the directory?" check, by phone number only.
 // Privacy: the answer is only a status (VERIFIED / PENDING /
-// NEEDS_CORRECTION / NOT_FOUND) — no name, no personal details, and the
-// submitted phone number is never stored or logged. The lookup uses the
-// HMAC hash, the same way login does, so the number itself is never
-// decrypted or compared in plain text.
+// NEEDS_CORRECTION / NOT_FOUND) plus — when the number is listed — the
+// degree name, so the person can confirm the record is really theirs.
+// No name, address or contact details are ever shown, and the submitted
+// phone number is never stored or logged. The lookup uses the HMAC hash,
+// the same way login does, so the number itself is never decrypted or
+// compared in plain text.
 export async function POST(req: NextRequest) {
   try {
     const ip =
@@ -38,7 +40,7 @@ export async function POST(req: NextRequest) {
       where: {
         phoneLookupHash: hmacLookup(normalizePhoneForHash(rawPhone)),
       },
-      select: { profileStatus: true },
+      select: { profileStatus: true, degreeName: true },
     });
 
     if (!profile) {
@@ -52,7 +54,10 @@ export async function POST(req: NextRequest) {
       profile.profileStatus === "PENDING" ||
       profile.profileStatus === "NEEDS_CORRECTION"
     ) {
-      return NextResponse.json({ status: profile.profileStatus });
+      return NextResponse.json({
+        status: profile.profileStatus,
+        degree: profile.degreeName || undefined,
+      });
     }
     return NextResponse.json({ status: "NOT_FOUND" });
   } catch {
