@@ -45,7 +45,11 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: "Pyidaungsu", var(--font-myanmar), "Noto Sans Myanmar", sans-serif;
+  /* NOTE: never put an undefined var() in this stack — one undefined var()
+     invalidates the WHOLE font-family declaration and the browser falls
+     back to the system font (that was the 2026-11-25 phone bug:
+     var(--font-myanmar) was never defined, so Pyidaungsu never applied). */
+  font-family: "Pyidaungsu", "Noto Sans Myanmar", sans-serif;
   line-height: 1.75;
 }
 
