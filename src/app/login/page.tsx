@@ -116,6 +116,16 @@ export default function LoginPage() {
           <p className="mt-1 text-xs leading-relaxed">
             လူကြီးမင်းများအတွက် စကားဝှက်မေ့သွားပါက Admin ထံ ဆက်သွယ်၍{" "}
             <strong>တစ်ချက်နှိပ် Login Link (Magic Link)</strong> တောင်းယူနိုင်ပါသည်။
+            <br />
+            Telegram:{" "}
+            <a
+              href="https://t.me/upanna"
+              target="_blank"
+              rel="noreferrer"
+              className="font-bold text-amber-800 underline"
+            >
+              @upanna
+            </a>
           </p>
         </div>
 

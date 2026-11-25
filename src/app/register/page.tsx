@@ -532,6 +532,18 @@ export default function RegisterPage() {
             <span>{loading ? "ပေးပို့နေပါသည်..." : "စာရင်းတင်သွင်းမည်"}</span>
           </button>
         </form>
+
+        <p className="mt-6 text-center text-sm text-stone-600">
+          အကူအညီလိုပါက Admin ကို Telegram မှာ ဆက်သွယ်နိုင်ပါသည် —{" "}
+          <a
+            href="https://t.me/upanna"
+            target="_blank"
+            rel="noreferrer"
+            className="font-bold text-amber-800 underline"
+          >
+            @upanna
+          </a>
+        </p>
       </div>
     </div>
   );

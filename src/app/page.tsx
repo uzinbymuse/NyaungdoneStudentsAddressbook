@@ -99,6 +99,18 @@ export default async function HomePage() {
           </p>
         </div>
       </section>
+
+      <p className="mt-8 text-center text-sm text-stone-600">
+        Admin ကို ဆက်သွယ်ရန် — Telegram:{" "}
+        <a
+          href="https://t.me/upanna"
+          target="_blank"
+          rel="noreferrer"
+          className="font-bold text-amber-800 underline"
+        >
+          @upanna
+        </a>
+      </p>
     </div>
   );
 }
