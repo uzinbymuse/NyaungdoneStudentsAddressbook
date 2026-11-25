@@ -126,7 +126,7 @@ interface PrintEntry {
 }
 
 export default function AdminDashboardPage() {
-  const [tab, setTab] = useState<"PENDING" | "ALL" | "DUPLICATES" | "CORRECTIONS" | "PRINT" | "IMPORT" | "LOGS" | "DORMITORIES">("PENDING");
+  const [tab, setTab] = useState<"PENDING" | "ALL" | "DUPLICATES" | "CORRECTIONS" | "PRINT" | "IMPORT" | "LOGS" | "DORMITORIES" | "SETTINGS">("PENDING");
   const [stats, setStats] = useState({
     total: 0,
     verified: 0,
@@ -162,6 +162,16 @@ export default function AdminDashboardPage() {
   const [editForm, setEditForm] = useState<EditFormState | null>(null);
   const [editError, setEditError] = useState("");
   const [editSaving, setEditSaving] = useState(false);
+
+  // Admin's own login credentials (email + password)
+  const [credEmail, setCredEmail] = useState("");
+  const [credCurrent, setCredCurrent] = useState("");
+  const [credPassword, setCredPassword] = useState("");
+  const [credConfirm, setCredConfirm] = useState("");
+  const [credError, setCredError] = useState("");
+  const [credSuccess, setCredSuccess] = useState("");
+  const [credSaving, setCredSaving] = useState(false);
+  const [credLoaded, setCredLoaded] = useState(false);
 
   const activeDormitoryNames = dormitories.filter((d) => d.isActive).map((d) => d.name);
 
@@ -202,6 +212,54 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     loadDashboard();
   }, []);
+
+  useEffect(() => {
+    if (tab === "SETTINGS" && !credLoaded) {
+      setCredLoaded(true);
+      fetch("/api/admin/change-credentials")
+        .then((r) => r.json())
+        .then((d) => setCredEmail(d.loginEmail || ""))
+        .catch(() => {});
+    }
+  }, [tab, credLoaded]);
+
+  async function submitCredentials(e: React.FormEvent) {
+    e.preventDefault();
+    setCredError("");
+    setCredSuccess("");
+    if (credPassword && credPassword !== credConfirm) {
+      setCredError("စကားဝှက်အသစ် နှစ်ကြိမ် တူညီစွာ ရိုက်ထည့်ပါ။");
+      return;
+    }
+    setCredSaving(true);
+    try {
+      const res = await fetch("/api/admin/change-credentials", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          currentPassword: credCurrent,
+          newEmail: credEmail,
+          newPassword: credPassword,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setCredError(data.error || "ပြောင်းလဲရာတွင် အမှားအယွင်း ဖြစ်ပွားပါသည်။");
+        return;
+      }
+      setCredSuccess(
+        "Admin Login အချက်အလက် ပြောင်းလဲပြီးပါပြီ။ နောက်တစ်ကြိမ် Login ဝင်လျှင် အသစ်ကို သုံးပါ။"
+      );
+      if (data.loginEmail) setCredEmail(data.loginEmail);
+      setCredCurrent("");
+      setCredPassword("");
+      setCredConfirm("");
+    } catch {
+      setCredError("ချိတ်ဆက်မှု အမှားအယွင်း ဖြစ်ပွားပါသည်။");
+    } finally {
+      setCredSaving(false);
+    }
+  }
 
   async function runAlumniAction(payload: Record<string, unknown>) {
     setNotice("");
@@ -502,6 +560,7 @@ export default function AdminDashboardPage() {
           { id: "IMPORT", label: "Batch CSV Import" },
           { id: "DORMITORIES", label: `ကျောင်းဆောင် (${dormitories.length})` },
           { id: "LOGS", label: "Audit Logs" },
+          { id: "SETTINGS", label: "Login အချက်အလက်" },
         ].map((t) => (
           <button
             key={t.id}
@@ -922,6 +981,85 @@ export default function AdminDashboardPage() {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Tab Content: SETTINGS (admin login credentials) */}
+      {tab === "SETTINGS" && (
+        <div className="rounded-2xl border border-stone-200 bg-white p-6">
+          <div className="flex items-center gap-2 text-stone-900">
+            <KeyRound className="h-5 w-5 text-amber-800" />
+            <h2 className="text-lg font-bold">Admin Login အချက်အလက် ပြောင်းလဲရန်</h2>
+          </div>
+          <p className="mt-1 text-sm text-stone-600">
+            လက်ရှိ Login အီးမေးလ် (username) နှင့် စကားဝှက်ကို ပြောင်းလဲနိုင်ပါသည်။ လက်ရှိ စကားဝှက်ကို
+            အမြဲတမ်း ထည့်ရပါမည်။ ပြောင်းလဲလိုသော အကွက်ကိုသာ ဖြည့်ပါ — စကားဝှက်အသစ်သည် အနည်းဆုံး စာလုံး
+            ၆ လုံး ရှိရပါမည်။
+          </p>
+          <form onSubmit={submitCredentials} className="mt-4 grid max-w-2xl gap-3">
+            <div>
+              <label className="block text-sm font-semibold text-stone-800">
+                Login အီးမေးလ် (username)
+              </label>
+              <input
+                type="email"
+                value={credEmail}
+                onChange={(e) => setCredEmail(e.target.value)}
+                className="mt-1 w-full rounded-xl border border-stone-300 px-4 py-2.5 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-stone-800">လက်ရှိ စကားဝှက် *</label>
+              <input
+                type="password"
+                value={credCurrent}
+                onChange={(e) => setCredCurrent(e.target.value)}
+                className="mt-1 w-full rounded-xl border border-stone-300 px-4 py-2.5 text-sm"
+              />
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className="block text-sm font-semibold text-stone-800">စကားဝှက်အသစ်</label>
+                <input
+                  type="password"
+                  value={credPassword}
+                  onChange={(e) => setCredPassword(e.target.value)}
+                  placeholder="မပြောင်းလိုလျှင် ဗလာထားပါ"
+                  className="mt-1 w-full rounded-xl border border-stone-300 px-4 py-2.5 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-stone-800">
+                  စကားဝှက်အသစ် (ထပ်ရိုက်ပါ)
+                </label>
+                <input
+                  type="password"
+                  value={credConfirm}
+                  onChange={(e) => setCredConfirm(e.target.value)}
+                  className="mt-1 w-full rounded-xl border border-stone-300 px-4 py-2.5 text-sm"
+                />
+              </div>
+            </div>
+            <div>
+              <button
+                type="submit"
+                disabled={credSaving}
+                className="rounded-xl bg-stone-900 px-5 py-2.5 text-sm font-bold text-white disabled:opacity-50"
+              >
+                {credSaving ? "ပြောင်းလဲနေပါသည်..." : "ပြောင်းလဲသိမ်းဆည်းမည်"}
+              </button>
+            </div>
+          </form>
+          {credError && (
+            <p className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-800">
+              {credError}
+            </p>
+          )}
+          {credSuccess && (
+            <p className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-800">
+              {credSuccess}
+            </p>
+          )}
         </div>
       )}
 

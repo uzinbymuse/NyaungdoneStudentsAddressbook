@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BookOpen, CheckCircle2, Clock, Edit3, Shield, UserCheck } from "lucide-react";
+import { BookOpen, CheckCircle2, Clock, Edit3, KeyRound, Shield, UserCheck } from "lucide-react";
 
 interface ProfileData {
   id: string;
@@ -56,6 +56,13 @@ export default function ProfilePage() {
   const [corrCity, setCorrCity] = useState("");
   const [corrPhone, setCorrPhone] = useState("");
   const [corrReason, setCorrReason] = useState("");
+
+  const [pwCurrent, setPwCurrent] = useState("");
+  const [pwNew, setPwNew] = useState("");
+  const [pwConfirm, setPwConfirm] = useState("");
+  const [pwError, setPwError] = useState("");
+  const [pwSuccess, setPwSuccess] = useState("");
+  const [pwSaving, setPwSaving] = useState(false);
 
   async function loadAll() {
     setLoading(true);
@@ -125,6 +132,37 @@ export default function ProfilePage() {
       setCorrPhone("");
       setCorrReason("");
       loadAll();
+    }
+  }
+
+  async function submitPasswordChange(e: React.FormEvent) {
+    e.preventDefault();
+    setPwError("");
+    setPwSuccess("");
+    if (pwNew !== pwConfirm) {
+      setPwError("စကားဝှက်အသစ် နှစ်ကြိမ် တူညီစွာ ရိုက်ထည့်ပါ။");
+      return;
+    }
+    setPwSaving(true);
+    try {
+      const res = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword: pwCurrent, newPassword: pwNew }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setPwError(data.error || "ပြောင်းလဲရာတွင် အမှားအယွင်း ဖြစ်ပွားပါသည်။");
+        return;
+      }
+      setPwSuccess("Login စကားဝှက် ပြောင်းလဲပြီးပါပြီ။ နောက်တစ်ကြိမ် Login ဝင်လျှင် စကားဝှက်အသစ်ကို သုံးပါ။");
+      setPwCurrent("");
+      setPwNew("");
+      setPwConfirm("");
+    } catch {
+      setPwError("ချိတ်ဆက်မှု အမှားအယွင်း ဖြစ်ပွားပါသည်။");
+    } finally {
+      setPwSaving(false);
     }
   }
 
@@ -389,6 +427,58 @@ export default function ProfilePage() {
             ပြင်ဆင်ချက် တင်ပြမည်
           </button>
         </form>
+      </div>
+
+      {/* Change Login Password */}
+      <div className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
+        <div className="flex items-center gap-2 text-stone-900">
+          <KeyRound className="h-5 w-5 text-amber-800" />
+          <h2 className="text-lg font-bold">Login စကားဝှက် (PIN) ပြောင်းလဲရန်</h2>
+        </div>
+        <p className="mt-1 text-xs text-stone-600">
+          လက်ရှိ စကားဝှက်ကို ထည့်ပြီး အသစ်ပြောင်းနိုင်ပါသည်။ စကားဝှက်အသစ်သည် အနည်းဆုံး စာလုံး ၆ လုံး
+          ရှိရပါမည်။
+        </p>
+        <form onSubmit={submitPasswordChange} className="mt-4 grid gap-3 sm:grid-cols-3">
+          <input
+            type="password"
+            value={pwCurrent}
+            onChange={(e) => setPwCurrent(e.target.value)}
+            placeholder="လက်ရှိ စကားဝှက်"
+            className="rounded-xl border border-stone-300 px-3 py-2 text-sm"
+          />
+          <input
+            type="password"
+            value={pwNew}
+            onChange={(e) => setPwNew(e.target.value)}
+            placeholder="စကားဝှက်အသစ်"
+            className="rounded-xl border border-stone-300 px-3 py-2 text-sm"
+          />
+          <input
+            type="password"
+            value={pwConfirm}
+            onChange={(e) => setPwConfirm(e.target.value)}
+            placeholder="စကားဝှက်အသစ် (ထပ်ရိုက်ပါ)"
+            className="rounded-xl border border-stone-300 px-3 py-2 text-sm"
+          />
+          <button
+            type="submit"
+            disabled={pwSaving}
+            className="rounded-xl bg-amber-800 px-4 py-2 text-sm font-bold text-white hover:bg-amber-900 disabled:opacity-60"
+          >
+            {pwSaving ? "ပြောင်းလဲနေပါသည်..." : "စကားဝှက် ပြောင်းလဲမည်"}
+          </button>
+        </form>
+        {pwError && (
+          <p className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-800">
+            {pwError}
+          </p>
+        )}
+        {pwSuccess && (
+          <p className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-800">
+            {pwSuccess}
+          </p>
+        )}
       </div>
     </div>
   );
