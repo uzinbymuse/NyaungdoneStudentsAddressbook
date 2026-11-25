@@ -189,7 +189,7 @@ export default function RegisterPage() {
 
               <div>
                 <label className="block text-base font-semibold text-stone-800">
-                  ကျောင်းဝင်/ဘွဲ့ရ မြန်မာခုနှစ် (Batch) <span className="text-red-600">*</span>
+                  ကျောင်းသို့ရောက်သည့် ခုနှစ် <span className="text-red-600">*</span>
                 </label>
                 <input
                   type="text"
