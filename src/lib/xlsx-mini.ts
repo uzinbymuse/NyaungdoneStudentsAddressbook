@@ -12,11 +12,26 @@
 
 import zlib from "zlib";
 
+export interface DataValidation {
+  /** Cell range the dropdown applies to, e.g. "B2:B1001". */
+  sqref: string;
+  /** Inline list (quotes included), e.g. '"ရဟန်း,လူ"', or a range on
+      another sheet, e.g. "Lists!$A$2:$A$13". */
+  formula1: string;
+}
+
 export interface MiniSheet {
   name: string;
   rows: Array<Array<string | number>>;
   /** Column widths in characters, e.g. [22, 12, 30]. */
   widths?: number[];
+  /** Hidden helper sheet (e.g. dropdown lists) — not shown in Excel. */
+  hidden?: boolean;
+  /** Dropdown (list) validations applied to this sheet. Invalid entries
+      show a warning but are not blocked — the import preview is the
+      real gate, so a legitimate value outside the list can still be
+      typed. */
+  validations?: DataValidation[];
 }
 
 // ---------------------------------------------------------------------------
@@ -219,11 +234,27 @@ export function buildXlsx(sheets: MiniSheet[]): Buffer {
         return `<row r="${r + 1}">${cells}</row>`;
       })
       .join("");
-    return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">${cols}<sheetData>${rowsXml}</sheetData></worksheet>`;
+    // List validations go after <sheetData>. errorStyle="warning" lets
+    // the user keep a value outside the list (with a warning dialog);
+    // showDropDown="false" is Excel's inverted flag meaning the
+    // dropdown arrow IS shown.
+    const validationsXml =
+      sheet.validations && sheet.validations.length > 0
+        ? `<dataValidations count="${sheet.validations.length}">${sheet.validations
+            .map(
+              (v) =>
+                `<dataValidation type="list" allowBlank="1" showDropDown="false" errorStyle="warning" sqref="${v.sqref}"><formula1>${xmlEscape(v.formula1)}</formula1></dataValidation>`
+            )
+            .join("")}</dataValidations>`
+        : "";
+    return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">${cols}<sheetData>${rowsXml}</sheetData>${validationsXml}</worksheet>`;
   });
 
   const workbookSheets = sheets
-    .map((sheet, i) => `<sheet name="${xmlEscape(sheet.name)}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`)
+    .map(
+      (sheet, i) =>
+        `<sheet name="${xmlEscape(sheet.name)}" sheetId="${i + 1}"${sheet.hidden ? ` state="hidden"` : ""} r:id="rId${i + 1}"/>`
+    )
     .join("");
   const rels = sheets
     .map(

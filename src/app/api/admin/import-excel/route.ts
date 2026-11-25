@@ -6,6 +6,7 @@ import { buildXlsx, parseXlsx } from "@/lib/xlsx-mini";
 import {
   IMPORT_COLUMNS,
   MAX_IMPORT_FILE_BYTES,
+  MAX_IMPORT_ROWS,
   TEMP_PIN_VALIDITY_DAYS,
   isValidTempPin,
   parseImportSheet,
@@ -13,6 +14,8 @@ import {
   type ImportRowResult,
   type ValidImportRow,
 } from "@/lib/excel-import";
+import { COUNTRIES, MYANMAR_REGIONS } from "@/lib/mimu-locations";
+import { DORMITORY_OTHER } from "@/lib/dormitories";
 import { maskPhone } from "@/lib/myanmar-utils";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { logAudit } from "@/lib/audit";
@@ -28,16 +31,81 @@ const TEMPLATE_INSTRUCTIONS: string[][] = [
   ["၆။ သွင်းပြီးသား လူတွေက ကိုယ့်ဖုန်းနံပါတ် + Admin ပေးတဲ့ ယာယီ PIN နဲ့ Login ဝင်ပြီး၊"],
   ["    ပထမအကြိမ်မှာ PIN အသစ် မဖြစ်မနေ ပြောင်းရပါမယ် (ယာယီ PIN သက်တမ်း ၆၀ ရက်)။"],
   ["၇။ ဖုန်းနံပါတ် ထပ်နေတဲ့ အတန်းတွေကို မသွင်းပါ (စနစ်ထဲမှာ ရှိပြီးသား လူများ)။"],
+  ["၈။ ရဟန်း/လူ၊ ကျောင်းဆောင်၊ နိုင်ငံ၊ တိုင်း/ပြည်နယ်၊ မြို့နယ်/မြို့ ကော်လံတွေမှာ မြှားလေးကို နှိပ်ပြီး စာရင်းထဲက ရွေးပါ (Web ဖောင်မှာပါတဲ့ ရွေးချယ်စရာတွေနဲ့ အတူတူပါ)။ မြို့နယ်စာရင်းမှာ တိုင်းအားလုံးရဲ့ မြို့နယ်တွေ ပါဝင်ပြီး၊ ကိုယ့်တိုင်းနဲ့ ကိုက်တဲ့ မြို့နယ်ကို ရွေးပါ။"],
+  ["၉။ စာရင်းထဲမှာ မပါတဲ့ အမည်ကို ရိုက်ထည့်လို့လည်း ရပါတယ် — သွင်းခါနီး စစ်ဆေးတဲ့အချိန်မှာ မှားနေရင် ပြပေးပါမယ်။"],
 ];
 
-function templateWorkbook(): Buffer {
+const LISTS_SHEET = "Lists";
+
+/**
+ * The downloadable template: the data sheet (header row only) with
+ * dropdown lists on the columns that are dropdowns on the web form —
+ * monk/lay, dormitory, country, region, township — plus a hidden
+ * "Lists" sheet holding the option values. Long lists live on the
+ * hidden sheet because an inline list is limited to 255 characters;
+ * the dormitory list is read from the DB at download time so it
+ * always matches the admin panel.
+ */
+async function templateWorkbook(): Promise<Buffer> {
+  const countries = COUNTRIES.map((c) => c.nameMm);
+  const regions = Object.keys(MYANMAR_REGIONS);
+  const townshipSet = new Set<string>();
+  for (const region of regions) {
+    for (const ts of MYANMAR_REGIONS[region]) townshipSet.add(ts);
+  }
+  const townships = [...townshipSet];
+  const dorms = await prisma.dormitory.findMany({
+    where: { isActive: true },
+    orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+    select: { name: true },
+  });
+  const dormitories =
+    dorms.length > 0 ? [...dorms.map((d) => d.name), DORMITORY_OTHER] : [];
+
+  const listRows: string[][] = [
+    ["နိုင်ငံ", "တိုင်း/ပြည်နယ်", "မြို့နယ်", "ကျောင်းဆောင်"],
+  ];
+  const maxLen = Math.max(
+    countries.length,
+    regions.length,
+    townships.length,
+    dormitories.length
+  );
+  for (let i = 0; i < maxLen; i++) {
+    listRows.push([
+      countries[i] ?? "",
+      regions[i] ?? "",
+      townships[i] ?? "",
+      dormitories[i] ?? "",
+    ]);
+  }
+  const lastRow = MAX_IMPORT_ROWS + 1; // header row 1 + up to 1000 data rows
+  const range = (col: string, n: number) =>
+    `${LISTS_SHEET}!$${col}$2:$${col}$${n + 1}`;
+  const validations = [
+    { sqref: `B2:B${lastRow}`, formula1: `"ရဟန်း,လူ"` },
+    { sqref: `G2:G${lastRow}`, formula1: range("A", countries.length) },
+    { sqref: `H2:H${lastRow}`, formula1: range("B", regions.length) },
+    { sqref: `I2:I${lastRow}`, formula1: range("C", townships.length) },
+    ...(dormitories.length > 0
+      ? [{ sqref: `E2:E${lastRow}`, formula1: range("D", dormitories.length) }]
+      : []),
+  ];
+
   return buildXlsx([
     {
       name: "အချက်အလက်",
       widths: IMPORT_COLUMNS.map(() => 22),
       rows: [templateHeaders()],
+      validations,
     },
     { name: "အညွှန်း", widths: [110], rows: TEMPLATE_INSTRUCTIONS },
+    {
+      name: LISTS_SHEET,
+      widths: [22, 22, 22, 22],
+      rows: listRows,
+      hidden: true,
+    },
   ]);
 }
 
@@ -50,7 +118,7 @@ export async function GET(req: NextRequest) {
   const action = req.nextUrl.searchParams.get("action");
 
   if (action === "template") {
-    const buffer = templateWorkbook();
+    const buffer = await templateWorkbook();
     return new NextResponse(buffer as unknown as BodyInit, {
       headers: {
         "Content-Type":

@@ -110,6 +110,9 @@ export default function ExcelImport() {
           <Download className="h-4 w-4" /> Template (.xlsx) ဒေါင်းလုဒ်လုပ်ရန်
         </a>
       </div>
+      <p className="mt-2 text-xs text-stone-500">
+        Template ထဲမှာ ရဟန်း/လူ၊ ကျောင်းဆောင်၊ နိုင်ငံ၊ တိုင်း/ပြည်နယ်၊ မြို့နယ်/မြို့ ကော်လံတွေကို မြှားလေးနဲ့ ရွေးလို့ရပါတယ် (Web ဖောင်မှာပါတဲ့ ရွေးချယ်စရာတွေနဲ့ အတူတူပါ)။
+      </p>
 
       {error && (
         <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-800">
