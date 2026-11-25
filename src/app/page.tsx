@@ -26,7 +26,7 @@ export default async function HomePage() {
       <section className="rounded-3xl border border-amber-200 bg-white p-8 shadow-sm sm:p-12">
         <img
           src="/logo.png"
-          alt="ပါဠိတက္ကသိုလ် ညောင်တုန်း လိုဂို"
+          alt="ပါဠိတက္ကသိုလ် ညောင်တုန်းကျောင်းတိုက် လိုဂို"
           className="h-28 w-auto object-contain"
         />
         <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-amber-100 px-4 py-1.5 text-sm font-semibold text-amber-900">
@@ -35,7 +35,7 @@ export default async function HomePage() {
         </div>
 
         <h1 className="mt-5 text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl">
-          ပါဠိတက္ကသိုလ် ညောင်တုန်း
+          ပါဠိတက္ကသိုလ် ညောင်တုန်းကျောင်းတိုက်
           <span className="mt-1 block text-amber-800">
             ဗဟန်း-ညောင်တုန်းနွယ်ဖွား မှတ်တမ်းနှင့် လိပ်စာစာအုပ်
           </span>
@@ -85,7 +85,7 @@ export default async function HomePage() {
 
       {/* Trust & Privacy Guarantees */}
       <p className="mt-8 text-center text-sm leading-relaxed text-stone-600">
-        ဤစာရင်းသည် ပါဠိတက္ကသိုလ် ညောင်တုန်း ဗဟန်း-ညောင်တုန်းနွယ်ဖွားအတွက်သာ ဖြစ်ပါသည်။ အတည်ပြုပြီးသော
+        ဤစာရင်းသည် ပါဠိတက္ကသိုလ် ညောင်တုန်းကျောင်းတိုက် ဗဟန်း-ညောင်တုန်းနွယ်ဖွားအတွက်သာ ဖြစ်ပါသည်။ အတည်ပြုပြီးသော
         ဗဟန်း-ညောင်တုန်းနွယ်ဖွားသာ Login ဝင်၍ ကြည့်ရှုနိုင်ပါသည်။
       </p>
 

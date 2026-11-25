@@ -52,7 +52,7 @@ export default function LoginPage() {
       <div className="rounded-3xl border border-stone-200 bg-white p-8 shadow-sm">
         <img
           src="/logo.png"
-          alt="ပါဠိတက္ကသိုလ် ညောင်တုန်း လိုဂို"
+          alt="ပါဠိတက္ကသိုလ် ညောင်တုန်းကျောင်းတိုက် လိုဂို"
           className="mx-auto h-24 w-auto object-contain"
         />
         <div className="mt-4 flex items-center gap-2 text-amber-800">

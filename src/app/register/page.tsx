@@ -104,14 +104,14 @@ export default function RegisterPage() {
       <div className="rounded-3xl border border-amber-200 bg-white p-6 shadow-sm sm:p-10">
         <img
           src="/logo.png"
-          alt="ပါဠိတက္ကသိုလ် ညောင်တုန်း လိုဂို"
+          alt="ပါဠိတက္ကသိုလ် ညောင်တုန်းကျောင်းတိုက် လိုဂို"
           className="h-24 w-auto object-contain"
         />
         <h1 className="mt-4 text-2xl font-bold text-stone-900 sm:text-3xl">
           ဗဟန်း-ညောင်တုန်းနွယ်ဖွား စာရင်းသွင်းရန် ဖောင်
         </h1>
         <p className="mt-2 text-base text-stone-600">
-          ပါဠိတက္ကသိုလ် ညောင်တုန်း ဗဟန်း-ညောင်တုန်းနွယ်ဖွား အချင်းချင်း ဆက်သွယ်နိုင်ရန်နှင့် လိပ်စာစာအုပ် ထုတ်ဝေနိုင်ရန် ဖြည့်သွင်းပေးပါ။
+          ပါဠိတက္ကသိုလ် ညောင်တုန်းကျောင်းတိုက် ဗဟန်း-ညောင်တုန်းနွယ်ဖွား အချင်းချင်း ဆက်သွယ်နိုင်ရန်နှင့် လိပ်စာစာအုပ် ထုတ်ဝေနိုင်ရန် ဖြည့်သွင်းပေးပါ။
         </p>
 
         <p className="mt-2 text-sm font-semibold text-red-700">

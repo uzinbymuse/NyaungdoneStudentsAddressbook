@@ -47,10 +47,10 @@ export default async function AdminPrintBookPage() {
       <div className="border-b-2 border-stone-800 pb-6 text-center">
         <img
           src="/logo.png"
-          alt="ပါဠိတက္ကသိုလ် ညောင်တုန်း လိုဂို"
+          alt="ပါဠိတက္ကသိုလ် ညောင်တုန်းကျောင်းတိုက် လိုဂို"
           className="mx-auto h-32 w-auto object-contain"
         />
-        <h1 className="mt-3 text-2xl font-bold">ပါဠိတက္ကသိုလ် ညောင်တုန်း</h1>
+        <h1 className="mt-3 text-2xl font-bold">ပါဠိတက္ကသိုလ် ညောင်တုန်းကျောင်းတိုက်</h1>
         <h2 className="mt-1 text-xl font-semibold">ဗဟန်း-ညောင်တုန်းနွယ်ဖွား လိပ်စာစာအုပ်</h2>
         <p className="mt-2 text-sm text-stone-600">
           (ဗဟန်း-ညောင်တုန်းနွယ်ဖွားအတွက်သာ — ခွင့်ပြုချက်ရရှိသူ {eligible.length} ဦး)

@@ -52,12 +52,12 @@ export function Navbar() {
         <Link href="/" className="flex items-center gap-2.5 text-amber-900">
           <img
             src="/logo.png"
-            alt="ပါဠိတက္ကသိုလ် ညောင်တုန်း လိုဂို"
+            alt="ပါဠိတက္ကသိုလ် ညောင်တုန်းကျောင်းတိုက် လိုဂို"
             className="h-11 w-11 shrink-0 object-contain"
           />
           <div>
             <div className="text-base font-bold leading-tight text-stone-900">
-              ပါဠိတက္ကသိုလ် ညောင်တုန်း
+              ပါဠိတက္ကသိုလ် ညောင်တုန်းကျောင်းတိုက်
             </div>
             <div className="text-xs text-amber-800">ဗဟန်း-ညောင်တုန်းနွယ်ဖွား လိပ်စာမှတ်တမ်း</div>
           </div>

@@ -5,7 +5,7 @@ export default function PrivacyPage() {
         <h1 className="text-2xl font-bold text-stone-900 sm:text-3xl">
           ကိုယ်ရေးအချက်အလက် လုံခြုံရေးနှင့် အသုံးပြုမှု မူဝါဒ
         </h1>
-        <p className="mt-2 text-sm text-stone-500">Policy Version: v1.1 — ပါဠိတက္ကသိုလ် ညောင်တုန်း ဗဟန်း-ညောင်တုန်းနွယ်ဖွား မှတ်တမ်းစနစ်</p>
+        <p className="mt-2 text-sm text-stone-500">Policy Version: v1.1 — ပါဠိတက္ကသိုလ် ညောင်တုန်းကျောင်းတိုက် ဗဟန်း-ညောင်တုန်းနွယ်ဖွား မှတ်တမ်းစနစ်</p>
 
         <div className="mt-6 space-y-5 text-base text-stone-700">
           <section>
