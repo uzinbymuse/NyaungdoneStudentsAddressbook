@@ -36,8 +36,10 @@ export default function SetPinPage() {
         setLoading(false);
         return;
       }
-      router.push("/profile");
-      router.refresh();
+      // Hard navigation: the session cookie just changed (mustChangePin
+      // cleared), so a full reload guarantees the new session is used.
+      // router.push could stall here and leave the button stuck loading.
+      window.location.href = "/profile";
     } catch {
       setError("ချိတ်ဆက်မှု အမှားအယွင်း ဖြစ်ပွားပါသည်။");
       setLoading(false);
