@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { encryptField, hmacLookup } from "../src/lib/crypto";
 import { buildSearchNameKey, normalizePhoneForHash } from "../src/lib/myanmar-utils";
 
@@ -8,21 +9,34 @@ const prisma = new PrismaClient();
 async function main() {
   const adminPhoneNorm = normalizePhoneForHash("09999000001");
   const adminPhoneHash = hmacLookup(adminPhoneNorm);
-  const adminPasswordHash = await bcrypt.hash("Admin@ND2026!", 12);
-
-  const admin = await prisma.user.upsert({
-    where: { loginEmail: "admin@nyaungdon-alumni.org" },
-    update: {},
-    create: {
-      loginEmail: "admin@nyaungdon-alumni.org",
-      loginPhoneHash: adminPhoneHash,
-      passwordHash: adminPasswordHash,
-      role: "ADMIN",
-      accountStatus: "ACTIVE",
-    },
+  // Admin user: created only on first seed, with the password from the
+  // ADMIN_PASSWORD env var — never a hardcoded default. Re-running the
+  // seed never overwrites the admin password (change it from the admin
+  // panel's "Login အချက်အလက်" tab instead).
+  const adminEmail = "admin@nyaungdon-alumni.org";
+  const existingAdmin = await prisma.user.findUnique({
+    where: { loginEmail: adminEmail },
   });
+  let admin = existingAdmin;
+  if (!admin) {
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    if (!adminPassword || adminPassword.length < 6) {
+      throw new Error(
+        "ADMIN_PASSWORD env var (at least 6 characters) is required to create the admin user on first seed."
+      );
+    }
+    admin = await prisma.user.create({
+      data: {
+        loginEmail: adminEmail,
+        loginPhoneHash: adminPhoneHash,
+        passwordHash: await bcrypt.hash(adminPassword, 12),
+        role: "ADMIN",
+        accountStatus: "ACTIVE",
+      },
+    });
+  }
 
-  console.log("Seeded Admin user:", admin.loginEmail, "(Default Pass: Admin@ND2026!)");
+  console.log("Seeded Admin user:", admin.loginEmail);
 
   // Sample Verified Alumni 1 (Domestic)
   const sample1PhoneHash = hmacLookup(normalizePhoneForHash("09791234567"));
@@ -34,7 +48,7 @@ async function main() {
     const user1 = await prisma.user.create({
       data: {
         loginPhoneHash: sample1PhoneHash,
-        passwordHash: await bcrypt.hash("123456", 12),
+        passwordHash: await bcrypt.hash(crypto.randomBytes(16).toString("hex"), 12),
         role: "MEMBER",
         accountStatus: "ACTIVE",
       },
@@ -96,7 +110,7 @@ async function main() {
     const user2 = await prisma.user.create({
       data: {
         loginPhoneHash: sample2PhoneHash,
-        passwordHash: await bcrypt.hash("123456", 12),
+        passwordHash: await bcrypt.hash(crypto.randomBytes(16).toString("hex"), 12),
         role: "MEMBER",
         accountStatus: "ACTIVE",
       },

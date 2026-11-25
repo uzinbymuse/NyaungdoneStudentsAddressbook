@@ -105,9 +105,13 @@ Browser တွင် `http://localhost:3000` သို့ ဝင်ရောက�
 
 ---
 
-## ၇။ Admin Default Login (စမ်းသပ်ရန်)
-`npx tsx prisma/seed.ts` Run ပြီးပါက အောက်ပါ Admin အကောင့်ဖြင့် ဝင်ရောက်နိုင်ပါသည်-
+## ၇။ Admin Login (စမ်းသပ်ရန်)
+`npx tsx prisma/seed.ts` Run သည့်အခါ Admin အကောင့်ကို ပထမအကြိမ်သာ ဖန်တီးပေးပါမည်။ စကားဝှက်ကို `ADMIN_PASSWORD` environment variable မှ ယူပါသည် —
 * **Email:** `admin@nyaungdon-alumni.org`
-* **Password:** `Admin@ND2026!`
+* **Password:** `ADMIN_PASSWORD` တွင် သတ်မှတ်ထားသော စကားဝှက် (အနည်းဆုံး စာလုံး ၆ လုံး)
 
-> **အရေးကြီးသတိပေးချက်-** Production တွင် အများပြည်သူ မသုံးစွဲမီ Admin Password ကို မဖြစ်မနေ ပြောင်းလဲထားပါ။
+```bash
+ADMIN_PASSWORD='မိမိစကားဝှက်' npx tsx prisma/seed.ts
+```
+
+> **မှတ်ချက်-** Seed ကို ထပ်ပြီး Run လည်း Admin စကားဝှက်ကို ထပ်မပြောင်းပါ။ စကားဝှက်ပြောင်းလိုလျှင် Admin Panel ရှိ "Login အချက်အလက်" tab မှ ပြောင်းလဲပါ။
