@@ -19,6 +19,7 @@ import {
 import { COUNTRIES } from "@/lib/mimu-locations";
 import { DORMITORY_OTHER } from "@/lib/dormitories";
 import ExcelImport from "@/components/ExcelImport";
+import AdminBackup from "@/components/AdminBackup";
 
 interface AdminAlumni {
   id: string;
@@ -130,7 +131,7 @@ interface PrintEntry {
 }
 
 export default function AdminDashboardPage() {
-  const [tab, setTab] = useState<"PENDING" | "ALL" | "DUPLICATES" | "CORRECTIONS" | "PRINT" | "IMPORT" | "LOGS" | "DORMITORIES" | "SETTINGS">("PENDING");
+  const [tab, setTab] = useState<"PENDING" | "ALL" | "DUPLICATES" | "CORRECTIONS" | "PRINT" | "IMPORT" | "BACKUP" | "LOGS" | "DORMITORIES" | "SETTINGS">("PENDING");
   const [stats, setStats] = useState({
     total: 0,
     verified: 0,
@@ -565,6 +566,7 @@ export default function AdminDashboardPage() {
           { id: "CORRECTIONS", label: `Corrections (${corrections.length})` },
           { id: "PRINT", label: "Print Book Export" },
           { id: "IMPORT", label: "Excel / CSV Import" },
+          { id: "BACKUP", label: "Backup / Restore" },
           { id: "DORMITORIES", label: `ကျောင်းဆောင် (${dormitories.length})` },
           { id: "LOGS", label: "Audit Logs" },
           { id: "SETTINGS", label: "Login အချက်အလက်" },
@@ -817,6 +819,9 @@ export default function AdminDashboardPage() {
           </div>
         </div>
       )}
+
+      {/* Tab Content: BACKUP / RESTORE */}
+      {tab === "BACKUP" && <AdminBackup />}
 
       {/* Tab Content: DORMITORIES */}
       {tab === "DORMITORIES" && (

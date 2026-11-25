@@ -214,6 +214,19 @@ model Publication {
   createdAt     DateTime @default(now())
 }
 
+// Safety snapshot saved automatically before every Restore, so the last
+// restore can be undone from the admin panel. Only the latest snapshot
+// is kept. The data is the same shape as a downloaded backup file, but
+// stored in the DB it also keeps password hashes, so an undo restores
+// accounts exactly (a downloaded file never contains password hashes).
+model BackupSnapshot {
+  id          String   @id @default(uuid())
+  createdAt   DateTime @default(now())
+  createdById String?
+  label       String   @default("restore")
+  data        Json
+}
+
 model AuditLog {
   id         String   @id @default(uuid())
   actorId    String?
