@@ -5,8 +5,11 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { logAudit } from "@/lib/audit";
 
 // Any logged-in user changes their own login password — members call
-// it their PIN. The current password must be given, and the new one
-// must be at least 6 characters.
+// it their PIN. The new one must be at least 6 characters. The current
+// password must be given, EXCEPT for a forced reset (passwordIsTemporary
+// sessions — temp-PIN imports and magic-link logins): those users are
+// resetting precisely because they cannot provide the current password,
+// so the new PIN is typed twice instead and must differ from the old one.
 export async function POST(req: NextRequest) {
   try {
     const session = await getCurrentSession();
@@ -30,9 +33,9 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const currentPassword = String(body.currentPassword || "");
     const newPassword = String(body.newPassword || "");
-    if (!currentPassword || !newPassword) {
+    if (!newPassword) {
       return NextResponse.json(
-        { error: "လက်ရှိနှင့် အသစ် စကားဝှက် နှစ်ခုလုံး ထည့်သွင်းပါ။" },
+        { error: "စကားဝှက်အသစ် ထည့်သွင်းပါ။" },
         { status: 400 }
       );
     }
@@ -57,11 +60,30 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "အကောင့် မတွေ့ပါ။" }, { status: 404 });
     }
 
-    const valid = await verifyPassword(currentPassword, user.passwordHash);
-    if (!valid) {
+    // Forced-reset sessions (temp PIN / magic link) skip the current
+    // password — the user is resetting because they cannot provide it.
+    // Everyone else must still prove the current password.
+    if (user.passwordIsTemporary !== true) {
+      if (!currentPassword) {
+        return NextResponse.json(
+          { error: "လက်ရှိ စကားဝှက် ထည့်သွင်းပါ။" },
+          { status: 400 }
+        );
+      }
+      const valid = await verifyPassword(currentPassword, user.passwordHash);
+      if (!valid) {
+        return NextResponse.json(
+          { error: "လက်ရှိ စကားဝှက် မှားယွင်းနေပါသည်။" },
+          { status: 401 }
+        );
+      }
+    }
+
+    // The new PIN must differ from the old one.
+    if (await verifyPassword(newPassword, user.passwordHash)) {
       return NextResponse.json(
-        { error: "လက်ရှိ စကားဝှက် မှားယွင်းနေပါသည်။" },
-        { status: 401 }
+        { error: "PIN အသစ်သည် လက်ရှိ PIN နှင့် မတူရပါမည်။" },
+        { status: 400 }
       );
     }
 

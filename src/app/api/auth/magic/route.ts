@@ -35,12 +35,17 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(new URL("/login?error=temp_pin_expired", req.url));
   }
 
-  // Single-use token: clear immediately
+  // Single-use token: clear immediately. A magic-link login is a password
+  // recovery login, so the member must set a new PIN right away — mark
+  // the account temporary so the forced-PIN-change gate sends them to
+  // /set-pin. (The old PIN stays usable until they do, with no expiry.)
   await prisma.user.update({
     where: { id: user.id },
     data: {
       magicTokenHash: null,
       magicTokenExpiresAt: null,
+      passwordIsTemporary: true,
+      tempPasswordExpiresAt: null,
       lastLoginAt: new Date(),
     },
   });
@@ -50,7 +55,7 @@ export async function GET(req: NextRequest) {
     role: user.role,
     profileStatus: user.profile?.profileStatus ?? "PENDING",
     alumniId: user.profile?.id,
-    mustChangePin: isTempPin,
+    mustChangePin: true,
   });
 
   await logAudit({
@@ -58,12 +63,8 @@ export async function GET(req: NextRequest) {
     action: "MAGIC_LOGIN_SUCCESS",
     targetType: "User",
     targetId: user.id,
+    details: { forcedPinReset: true },
   });
 
-  const dest = isTempPin
-    ? "/set-pin"
-    : user.profile?.profileStatus === "VERIFIED"
-      ? "/directory"
-      : "/profile";
-  return NextResponse.redirect(new URL(dest, req.url));
+  return NextResponse.redirect(new URL("/set-pin", req.url));
 }

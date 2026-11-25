@@ -7,7 +7,6 @@ import { KeyRound, LogOut } from "lucide-react";
 
 export default function SetPinPage() {
   const router = useRouter();
-  const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
@@ -24,16 +23,12 @@ export default function SetPinPage() {
       setError("PIN အသစ် နှစ်ခု မတူပါ။");
       return;
     }
-    if (newPassword === currentPassword) {
-      setError("PIN အသစ်သည် ယာယီ PIN နှင့် မတူရပါမည်။");
-      return;
-    }
     setLoading(true);
     try {
       const res = await fetch("/api/auth/change-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ currentPassword, newPassword }),
+        body: JSON.stringify({ newPassword }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -71,9 +66,9 @@ export default function SetPinPage() {
           ကိုယ့် PIN ကိုယ် ပြောင်းပါ
         </h1>
         <p className="mt-1 text-sm text-stone-600">
-          Admin ပေးထားတဲ့ ယာယီ PIN နဲ့ ဝင်ထားပါတယ်။ ကိုယ်ပိုင် PIN အသစ်
-          ပြောင်းပြီးမှ တခြားစာမျက်နှာတွေ သုံးလို့ရပါမယ်။ PIN အသစ်ကို
-          ဘယ်သူ့ကိုမှ မပြောပါနဲ့။
+          PIN အသစ် သတ်မှတ်ပြီးမှ တခြားစာမျက်နှာတွေ သုံးလို့ရပါမယ်။ အရင်
+          PIN ရိုက်စရာ မလိုပါ — PIN အသစ်ကို နှစ်ကြိမ် ရိုက်ပေးပါ။ PIN
+          အသစ်ကို ဘယ်သူ့ကိုမှ မပြောပါနဲ့။
         </p>
 
         {error && (
@@ -83,19 +78,6 @@ export default function SetPinPage() {
         )}
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-5">
-          <div>
-            <label className="block text-base font-semibold text-stone-800">
-              ယာယီ PIN (လက်ရှိ)
-            </label>
-            <input
-              type="password"
-              required
-              inputMode="numeric"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              className="latin-nums mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base text-stone-900 focus:border-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-200"
-            />
-          </div>
           <div>
             <label className="block text-base font-semibold text-stone-800">
               PIN အသစ် (အနည်းဆုံး ၆ လုံး)
