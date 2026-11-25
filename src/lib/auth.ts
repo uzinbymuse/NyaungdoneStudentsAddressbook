@@ -47,6 +47,7 @@ export async function getCurrentSession(): Promise<SessionPayload | null> {
       id: true,
       role: true,
       accountStatus: true,
+      passwordIsTemporary: true,
       profile: {
         select: { id: true, profileStatus: true },
       },
@@ -62,6 +63,7 @@ export async function getCurrentSession(): Promise<SessionPayload | null> {
     role: user.role,
     profileStatus: user.profile?.profileStatus ?? "PENDING",
     alumniId: user.profile?.id,
+    mustChangePin: user.passwordIsTemporary === true,
   };
 }
 

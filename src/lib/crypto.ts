@@ -77,6 +77,9 @@ export interface SessionPayload {
   role: "MEMBER" | "ADMIN";
   profileStatus: string;
   alumniId?: string;
+  // True while the account still uses its imported temporary PIN.
+  // Set at login from the DB; cleared when the PIN is changed.
+  mustChangePin?: boolean;
 }
 
 export async function signSessionToken(payload: SessionPayload): Promise<string> {
@@ -95,6 +98,7 @@ export async function verifySessionToken(token: string): Promise<SessionPayload 
       role: payload.role === "ADMIN" ? "ADMIN" : "MEMBER",
       profileStatus: String(payload.profileStatus || "PENDING"),
       alumniId: payload.alumniId ? String(payload.alumniId) : undefined,
+      mustChangePin: payload.mustChangePin === true,
     };
   } catch {
     return null;

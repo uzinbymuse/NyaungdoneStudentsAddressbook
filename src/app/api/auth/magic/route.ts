@@ -25,6 +25,16 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(new URL("/login?error=expired_token", req.url));
   }
 
+  const isTempPin = user.passwordIsTemporary === true;
+  if (
+    isTempPin &&
+    user.tempPasswordExpiresAt &&
+    user.tempPasswordExpiresAt < new Date()
+  ) {
+    // Do NOT consume the magic link: the member still needs it to get in.
+    return NextResponse.redirect(new URL("/login?error=temp_pin_expired", req.url));
+  }
+
   // Single-use token: clear immediately
   await prisma.user.update({
     where: { id: user.id },
@@ -40,6 +50,7 @@ export async function GET(req: NextRequest) {
     role: user.role,
     profileStatus: user.profile?.profileStatus ?? "PENDING",
     alumniId: user.profile?.id,
+    mustChangePin: isTempPin,
   });
 
   await logAudit({
@@ -49,6 +60,10 @@ export async function GET(req: NextRequest) {
     targetId: user.id,
   });
 
-  const dest = user.profile?.profileStatus === "VERIFIED" ? "/directory" : "/profile";
+  const dest = isTempPin
+    ? "/set-pin"
+    : user.profile?.profileStatus === "VERIFIED"
+      ? "/directory"
+      : "/profile";
   return NextResponse.redirect(new URL(dest, req.url));
 }

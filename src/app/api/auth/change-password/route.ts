@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getCurrentSession, hashPassword, verifyPassword } from "@/lib/auth";
+import { getCurrentSession, hashPassword, setSessionCookie, verifyPassword } from "@/lib/auth";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { logAudit } from "@/lib/audit";
 
@@ -45,7 +45,13 @@ export async function POST(req: NextRequest) {
 
     const user = await prisma.user.findUnique({
       where: { id: session.userId },
-      select: { id: true, passwordHash: true },
+      select: {
+        id: true,
+        passwordHash: true,
+        passwordIsTemporary: true,
+        role: true,
+        profile: { select: { id: true, profileStatus: true } },
+      },
     });
     if (!user) {
       return NextResponse.json({ error: "အကောင့် မတွေ့ပါ။" }, { status: 404 });
@@ -61,7 +67,21 @@ export async function POST(req: NextRequest) {
 
     await prisma.user.update({
       where: { id: user.id },
-      data: { passwordHash: await hashPassword(newPassword) },
+      data: {
+        passwordHash: await hashPassword(newPassword),
+        // A changed password is never temporary again — this also lifts
+        // the forced-PIN-change gate for imported accounts.
+        passwordIsTemporary: false,
+        tempPasswordExpiresAt: null,
+      },
+    });
+    // Re-issue the session without the must-change-PIN flag.
+    await setSessionCookie({
+      userId: user.id,
+      role: user.role,
+      profileStatus: user.profile?.profileStatus ?? "PENDING",
+      alumniId: user.profile?.id,
+      mustChangePin: false,
     });
     await logAudit({
       actorId: user.id,

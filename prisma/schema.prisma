@@ -58,6 +58,11 @@ model User {
   loginPhoneHash      String?       @unique
   loginEmail          String?       @unique
   passwordHash        String
+  // Set for accounts created by the old-book Excel import: the member
+  // logs in with a shared temporary PIN and must change it on first
+  // login; the PIN stops working after tempPasswordExpiresAt (60 days).
+  passwordIsTemporary Boolean       @default(false)
+  tempPasswordExpiresAt DateTime?
   magicTokenHash      String?       @unique
   magicTokenExpiresAt DateTime?
   role                UserRole      @default(MEMBER)

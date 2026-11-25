@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { COUNTRIES } from "@/lib/mimu-locations";
 import { DORMITORY_OTHER } from "@/lib/dormitories";
+import ExcelImport from "@/components/ExcelImport";
 
 interface AdminAlumni {
   id: string;
@@ -557,7 +558,7 @@ export default function AdminDashboardPage() {
           { id: "DUPLICATES", label: `Duplicates (${duplicateList.length})` },
           { id: "CORRECTIONS", label: `Corrections (${corrections.length})` },
           { id: "PRINT", label: "Print Book Export" },
-          { id: "IMPORT", label: "Batch CSV Import" },
+          { id: "IMPORT", label: "Excel / CSV Import" },
           { id: "DORMITORIES", label: `ကျောင်းဆောင် (${dormitories.length})` },
           { id: "LOGS", label: "Audit Logs" },
           { id: "SETTINGS", label: "Login အချက်အလက်" },
@@ -779,7 +780,9 @@ export default function AdminDashboardPage() {
 
       {/* Tab Content: BATCH IMPORT */}
       {tab === "IMPORT" && (
-        <div className="rounded-2xl border border-stone-200 bg-white p-6">
+        <div className="space-y-4">
+          <ExcelImport />
+          <div className="rounded-2xl border border-stone-200 bg-white p-6">
           <div className="flex items-center gap-2">
             <Upload className="h-5 w-5 text-amber-800" />
             <h2 className="text-lg font-bold text-stone-900">
@@ -803,6 +806,7 @@ export default function AdminDashboardPage() {
           >
             Import as Pending
           </button>
+          </div>
         </div>
       )}
 

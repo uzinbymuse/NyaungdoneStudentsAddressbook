@@ -66,6 +66,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Imported accounts log in with a shared temporary PIN. Once it
+    // expires they must come back through an admin magic link.
+    const isTempPin = user.passwordIsTemporary === true;
+    if (
+      isTempPin &&
+      user.tempPasswordExpiresAt &&
+      user.tempPasswordExpiresAt < new Date()
+    ) {
+      return NextResponse.json(
+        { error: "ယာယီ PIN သက်တမ်း ကုန်သွားပါပြီ။ Admin ထံ ဆက်သွယ်ပါ။" },
+        { status: 403 }
+      );
+    }
+
     await prisma.user.update({
       where: { id: user.id },
       data: { lastLoginAt: new Date() },
@@ -76,6 +90,7 @@ export async function POST(req: NextRequest) {
       role: user.role,
       profileStatus: user.profile?.profileStatus ?? "PENDING",
       alumniId: user.profile?.id,
+      mustChangePin: isTempPin,
     });
 
     await logAudit({
@@ -89,6 +104,7 @@ export async function POST(req: NextRequest) {
       ok: true,
       role: user.role,
       profileStatus: user.profile?.profileStatus ?? "PENDING",
+      mustChangePin: isTempPin,
     });
   } catch (err) {
     console.error("Login error:", err);

@@ -33,6 +33,8 @@ export default function LoginPage() {
 
       if (data.role === "ADMIN") {
         router.push("/admin");
+      } else if (data.mustChangePin) {
+        router.push("/set-pin");
       } else if (data.profileStatus === "VERIFIED") {
         router.push("/directory");
       } else {
