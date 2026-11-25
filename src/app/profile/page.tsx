@@ -282,7 +282,7 @@ export default function ProfilePage() {
             {incomingReqs.map((r) => (
               <div key={r.id} className="rounded-xl border border-stone-200 p-4 text-sm">
                 <p className="font-bold">
-                  {r.sender?.profile?.fullName || "ကျောင်းသားဟောင်း"} (
+                  {r.sender?.profile?.fullName || "ဗဟန်း-ညောင်တုန်းနွယ်ဖွား"} (
                   {r.sender?.profile?.batchYearDisplay || ""})
                 </p>
                 <p className="mt-1 text-stone-700">{r.message}</p>

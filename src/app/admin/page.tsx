@@ -721,7 +721,7 @@ export default function AdminDashboardPage() {
               <h2 className="text-lg font-bold">Print Book Export & Edition Freeze</h2>
             </div>
             <p className="mt-1 text-sm text-stone-600">
-              Print စာအုပ်တွင် ပါဝင်ရန် သဘောတူထားသော Verified ကျောင်းသားဟောင်း{" "}
+              Print စာအုပ်တွင် ပါဝင်ရန် သဘောတူထားသော Verified ဗဟန်း-ညောင်တုန်းနွယ်ဖွား{" "}
               <strong>{printData.eligibleCount}</strong> ဦး (ပြည်တွင်း {printData.domesticCount} · ပြည်ပ{" "}
               {printData.internationalCount})
             </p>
@@ -825,7 +825,7 @@ export default function AdminDashboardPage() {
           <p className="mt-1 text-sm text-stone-600">
             စာရင်းသွင်းဖောင်နှင့် Directory ရှာဖွေမှုတွင် ပြမည့် ကျောင်းဆောင်အမည်များ။ စာရင်း ဗလာဖြစ်နေလည်း
             ရပါသည် — ထိုအခါ &ldquo;အခြား&rdquo; ဖြင့် အမည်ကို ကိုယ်တိုင် ရေးထည့်နိုင်သည်။ အမည်ပြင်လိုက်လျှင် ထို
-            ကျောင်းဆောင်တွင် နေခဲ့ဖူးသော ကျောင်းသားဟောင်းအားလုံး၏ မှတ်တမ်းပါ အမည်သစ်ဖြင့် လိုက်ပြောင်းပေးမည်။
+            ကျောင်းဆောင်တွင် နေခဲ့ဖူးသော ဗဟန်း-ညောင်တုန်းနွယ်ဖွားအားလုံး၏ မှတ်တမ်းပါ အမည်သစ်ဖြင့် လိုက်ပြောင်းပေးမည်။
             ဖျောက်ထားခြင်း / ဖျက်ခြင်းသည် ကျောင်းသားမှတ်တမ်းကို လုံးဝ မထိခိုက်ပါ။
           </p>
 
@@ -1318,7 +1318,7 @@ export default function AdminDashboardPage() {
                   />
                 </div>
                 <div className="sm:col-span-2">
-                  <label className={lbl}>ကျောင်းသားဟောင်းများထံ ပေးလိုသော စကား</label>
+                  <label className={lbl}>ဗဟန်း-ညောင်တုန်းနွယ်ဖွားထံ ပေးလိုသော စကား</label>
                   <textarea
                     rows={2}
                     value={editForm.messageToAlumni}

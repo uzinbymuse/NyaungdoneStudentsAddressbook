@@ -117,9 +117,9 @@ export default function DirectoryPage() {
       <div className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-stone-900">ကျောင်းသားဟောင်းများ ရှာဖွေရန်</h1>
+            <h1 className="text-2xl font-bold text-stone-900">ဗဟန်း-ညောင်တုန်းနွယ်ဖွား ရှာဖွေရန်</h1>
             <p className="mt-1 text-sm text-stone-600">
-              အတည်ပြုပြီးသား ကျောင်းသားဟောင်းများသာ ကြည့်နိုင်သော စာရင်း (တစ်ကြိမ်လျှင် အများဆုံး ၂၀ ဦးသာ ပြသပါမည်)
+              အတည်ပြုပြီးသား ဗဟန်း-ညောင်တုန်းနွယ်ဖွားသာ ကြည့်နိုင်သော စာရင်း (တစ်ကြိမ်လျှင် အများဆုံး ၂၀ ဦးသာ ပြသပါမည်)
             </p>
           </div>
           <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800">
@@ -317,7 +317,7 @@ export default function DirectoryPage() {
 
       {!loading && !error && results.length === 0 && (
         <div className="mt-8 rounded-2xl border border-stone-200 bg-white p-8 text-center text-stone-500">
-          ရှာဖွေမှုနှင့် ကိုက်ညီသော ကျောင်းသားဟောင်း မတွေ့ရှိပါ။
+          ရှာဖွေမှုနှင့် ကိုက်ညီသော ဗဟန်း-ညောင်တုန်းနွယ်ဖွား မတွေ့ရှိပါ။
         </div>
       )}
 

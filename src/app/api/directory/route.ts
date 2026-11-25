@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
   const session = await requireVerifiedMember();
   if (!session) {
     return NextResponse.json(
-      { error: "အတည်ပြုပြီးသော ကျောင်းသားဟောင်းများသာ ဝင်ရောက်ကြည့်ရှုနိုင်ပါသည်။" },
+      { error: "အတည်ပြုပြီးသော ဗဟန်း-ညောင်တုန်းနွယ်ဖွားသာ ဝင်ရောက်ကြည့်ရှုနိုင်ပါသည်။" },
       { status: 403 }
     );
   }

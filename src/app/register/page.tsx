@@ -108,10 +108,10 @@ export default function RegisterPage() {
           className="h-24 w-auto object-contain"
         />
         <h1 className="mt-4 text-2xl font-bold text-stone-900 sm:text-3xl">
-          ကျောင်းသားဟောင်း စာရင်းသွင်းရန် ဖောင်
+          ဗဟန်း-ညောင်တုန်းနွယ်ဖွား စာရင်းသွင်းရန် ဖောင်
         </h1>
         <p className="mt-2 text-base text-stone-600">
-          ပါဠိတက္ကသိုလ် ညောင်တုန်း ကျောင်းသားဟောင်းများ အချင်းချင်း ဆက်သွယ်နိုင်ရန်နှင့် လိပ်စာစာအုပ် ထုတ်ဝေနိုင်ရန် ဖြည့်သွင်းပေးပါ။
+          ပါဠိတက္ကသိုလ် ညောင်တုန်း ဗဟန်း-ညောင်တုန်းနွယ်ဖွား အချင်းချင်း ဆက်သွယ်နိုင်ရန်နှင့် လိပ်စာစာအုပ် ထုတ်ဝေနိုင်ရန် ဖြည့်သွင်းပေးပါ။
         </p>
 
         <p className="mt-2 text-sm font-semibold text-red-700">
@@ -410,7 +410,7 @@ export default function RegisterPage() {
 
             <div>
               <label className="block text-base font-semibold text-stone-800">
-                ကျောင်းသားဟောင်းများထံ ပြောလိုသော စကား (အတို)
+                ဗဟန်း-ညောင်တုန်းနွယ်ဖွားထံ ပြောလိုသော စကား (အတို)
               </label>
               <textarea
                 rows={2}

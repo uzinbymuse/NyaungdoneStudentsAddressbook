@@ -59,7 +59,7 @@ export function Navbar() {
             <div className="text-base font-bold leading-tight text-stone-900">
               ပါဠိတက္ကသိုလ် ညောင်တုန်း
             </div>
-            <div className="text-xs text-amber-800">ကျောင်းသားဟောင်းများ လိပ်စာမှတ်တမ်း</div>
+            <div className="text-xs text-amber-800">ဗဟန်း-ညောင်တုန်းနွယ်ဖွား လိပ်စာမှတ်တမ်း</div>
           </div>
         </Link>
 
@@ -98,7 +98,7 @@ export function Navbar() {
                   className="inline-flex items-center gap-1.5 rounded-lg bg-amber-50 px-3 py-2 text-amber-900 hover:bg-amber-100"
                 >
                   <Users className="h-4 w-4" />
-                  <span>ကျောင်းသားဟောင်းများ</span>
+                  <span>ဗဟန်း-ညောင်တုန်းနွယ်ဖွား</span>
                 </Link>
               )}
 

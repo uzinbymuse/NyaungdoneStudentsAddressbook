@@ -51,16 +51,16 @@ export default async function AdminPrintBookPage() {
           className="mx-auto h-32 w-auto object-contain"
         />
         <h1 className="mt-3 text-2xl font-bold">ပါဠိတက္ကသိုလ် ညောင်တုန်း</h1>
-        <h2 className="mt-1 text-xl font-semibold">ကျောင်းသားဟောင်းများ လိပ်စာစာအုပ်</h2>
+        <h2 className="mt-1 text-xl font-semibold">ဗဟန်း-ညောင်တုန်းနွယ်ဖွား လိပ်စာစာအုပ်</h2>
         <p className="mt-2 text-sm text-stone-600">
-          (ကျောင်းသားဟောင်းများအတွက်သာ — ခွင့်ပြုချက်ရရှိသူ {eligible.length} ဦး)
+          (ဗဟန်း-ညောင်တုန်းနွယ်ဖွားအတွက်သာ — ခွင့်ပြုချက်ရရှိသူ {eligible.length} ဦး)
         </p>
       </div>
 
       {/* Part 1: Domestic */}
       <section className="mt-8">
         <h2 className="border-b border-stone-400 pb-2 text-lg font-bold">
-          အပိုင်း (၁) — ပြည်တွင်းနေ ကျောင်းသားဟောင်းများ ({domestic.length} ဦး)
+          အပိုင်း (၁) — ပြည်တွင်းနေ ဗဟန်း-ညောင်တုန်းနွယ်ဖွား ({domestic.length} ဦး)
         </h2>
         <div className="mt-4 space-y-4">
           {domestic.map((p) => (
@@ -95,7 +95,7 @@ export default async function AdminPrintBookPage() {
       {/* Part 2: International */}
       <section className="mt-10 break-before-page">
         <h2 className="border-b border-stone-400 pb-2 text-lg font-bold">
-          အပိုင်း (၂) — ပြည်ပရောက် ကျောင်းသားဟောင်းများ ({international.length} ဦး)
+          အပိုင်း (၂) — ပြည်ပရောက် ဗဟန်း-ညောင်တုန်းနွယ်ဖွား ({international.length} ဦး)
         </h2>
         <div className="mt-4 space-y-4">
           {international.map((p) => (
