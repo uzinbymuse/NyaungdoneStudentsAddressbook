@@ -43,9 +43,6 @@ export default function PrivacyPage() {
             </p>
           </section>
 
-          <section className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-            <strong>လုံးဝ မတောင်းသော အချက်များ-</strong> မှတ်ပုံတင်အမှတ် (NRC)၊ မွေးနေ့အတိအကျ၊ ဘဏ်အကောင့်နှင့် အိမ်အမှတ်အတိအကျတို့ကို မည်သည့်အခါမျှ မတောင်းပါ။
-          </section>
         </div>
       </div>
     </div>
