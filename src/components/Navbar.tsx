@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { BookOpen, LogIn, LogOut, ShieldCheck, User, Users, FileText } from "lucide-react";
+import { LogIn, LogOut, ShieldCheck, User, Users, FileText } from "lucide-react";
 
 interface MeUser {
   id: string;
@@ -50,9 +50,11 @@ export function Navbar() {
     <header className="no-print sticky top-0 z-40 border-b border-amber-200/80 bg-white/95 backdrop-blur">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
         <Link href="/" className="flex items-center gap-2.5 text-amber-900">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-800 text-white shadow-sm">
-            <BookOpen className="h-5 w-5" />
-          </div>
+          <img
+            src="/logo.png"
+            alt="ပါဠိတက္ကသိုလ် ညောင်တုန်း လိုဂို"
+            className="h-11 w-11 shrink-0 object-contain"
+          />
           <div>
             <div className="text-base font-bold leading-tight text-stone-900">
               ပါဠိတက္ကသိုလ် ညောင်တုန်း

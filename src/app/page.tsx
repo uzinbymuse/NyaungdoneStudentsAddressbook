@@ -24,7 +24,12 @@ export default async function HomePage() {
     <div className="mx-auto max-w-5xl px-4 py-10">
       {/* Hero Section */}
       <section className="rounded-3xl border border-amber-200 bg-white p-8 shadow-sm sm:p-12">
-        <div className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-4 py-1.5 text-sm font-semibold text-amber-900">
+        <img
+          src="/logo.png"
+          alt="ပါဠိတက္ကသိုလ် ညောင်တုန်း လိုဂို"
+          className="h-28 w-auto object-contain"
+        />
+        <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-amber-100 px-4 py-1.5 text-sm font-semibold text-amber-900">
           <Shield className="h-4 w-4" />
           <span>ကျောင်းသားဟောင်းများသာ ဝင်ရောက်နိုင်သော Privacy-First စနစ်</span>
         </div>

@@ -101,7 +101,12 @@ export default function RegisterPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
       <div className="rounded-3xl border border-amber-200 bg-white p-6 shadow-sm sm:p-10">
-        <h1 className="text-2xl font-bold text-stone-900 sm:text-3xl">
+        <img
+          src="/logo.png"
+          alt="ပါဠိတက္ကသိုလ် ညောင်တုန်း လိုဂို"
+          className="h-24 w-auto object-contain"
+        />
+        <h1 className="mt-4 text-2xl font-bold text-stone-900 sm:text-3xl">
           ကျောင်းသားဟောင်း စာရင်းသွင်းရန် ဖောင်
         </h1>
         <p className="mt-2 text-base text-stone-600">

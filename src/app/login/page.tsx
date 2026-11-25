@@ -50,7 +50,12 @@ export default function LoginPage() {
   return (
     <div className="mx-auto max-w-md px-4 py-12">
       <div className="rounded-3xl border border-stone-200 bg-white p-8 shadow-sm">
-        <div className="flex items-center gap-2 text-amber-800">
+        <img
+          src="/logo.png"
+          alt="ပါဠိတက္ကသိုလ် ညောင်တုန်း လိုဂို"
+          className="mx-auto h-24 w-auto object-contain"
+        />
+        <div className="mt-4 flex items-center gap-2 text-amber-800">
           <ShieldCheck className="h-6 w-6" />
           <span className="text-sm font-semibold">Members-Only Access</span>
         </div>

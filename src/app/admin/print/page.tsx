@@ -45,7 +45,12 @@ export default async function AdminPrintBookPage() {
 
       {/* Book Cover / Header */}
       <div className="border-b-2 border-stone-800 pb-6 text-center">
-        <h1 className="text-2xl font-bold">ပါဠိတက္ကသိုလ် ညောင်တုန်း</h1>
+        <img
+          src="/logo.png"
+          alt="ပါဠိတက္ကသိုလ် ညောင်တုန်း လိုဂို"
+          className="mx-auto h-32 w-auto object-contain"
+        />
+        <h1 className="mt-3 text-2xl font-bold">ပါဠိတက္ကသိုလ် ညောင်တုန်း</h1>
         <h2 className="mt-1 text-xl font-semibold">ကျောင်းသားဟောင်းများ လိပ်စာစာအုပ်</h2>
         <p className="mt-2 text-sm text-stone-600">
           (ကျောင်းသားဟောင်းများအတွက်သာ — ခွင့်ပြုချက်ရရှိသူ {eligible.length} ဦး)
