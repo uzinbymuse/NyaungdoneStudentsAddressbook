@@ -514,7 +514,7 @@ export default function RegisterPage() {
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
                   placeholder="အနည်းဆုံး ၆ လုံး"
-                  className="w-full rounded-xl border border-stone-300 bg-white px-4 py-3 pr-12 text-base"
+                  className="latin-nums w-full rounded-xl border border-stone-300 bg-white px-4 py-3 pr-12 text-base"
                 />
                 <button
                   type="button"

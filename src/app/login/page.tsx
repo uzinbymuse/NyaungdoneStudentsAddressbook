@@ -95,7 +95,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="စကားဝှက် ထည့်ပါ"
-                className="w-full rounded-xl border border-stone-300 px-4 py-3 pr-12 text-base text-stone-900 focus:border-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-200"
+                className="latin-nums w-full rounded-xl border border-stone-300 px-4 py-3 pr-12 text-base text-stone-900 focus:border-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-200"
               />
               <button
                 type="button"

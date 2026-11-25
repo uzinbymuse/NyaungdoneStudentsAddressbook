@@ -16,7 +16,7 @@ import {
 } from "@/lib/excel-import";
 import { COUNTRIES, MYANMAR_REGIONS } from "@/lib/mimu-locations";
 import { DORMITORY_OTHER } from "@/lib/dormitories";
-import { maskPhone } from "@/lib/myanmar-utils";
+import { maskPhone, toWesternDigits } from "@/lib/myanmar-utils";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { logAudit } from "@/lib/audit";
 
@@ -317,7 +317,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unknown step" }, { status: 400 });
   }
 
-  const tempPin = String(form.get("tempPin") || "");
+  const tempPin = toWesternDigits(String(form.get("tempPin") || ""));
   if (!isValidTempPin(tempPin)) {
     return NextResponse.json({ error: "ယာယီ PIN ကို ဂဏန်း ၆ လုံး ထည့်ပါ။" }, { status: 400 });
   }

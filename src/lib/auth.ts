@@ -1,16 +1,21 @@
 import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
 import { signSessionToken, verifySessionToken, type SessionPayload } from "./crypto";
+import { toWesternDigits } from "./myanmar-utils";
 import { prisma } from "./prisma";
 
 export const SESSION_COOKIE_NAME = "nd_alumni_session";
 
+// PINs/passwords are digit-normalized: a PIN typed with Myanmar digits
+// (U+1040–U+1049, e.g. from a phone Myanmar keyboard) must match the same
+// PIN typed with Latin digits on a PC. Normalizing here covers every
+// caller — login, register, change-password, admin credentials, temp PINs.
 export async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, 12);
+  return bcrypt.hash(toWesternDigits(password), 12);
 }
 
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  return bcrypt.compare(password, hash);
+  return bcrypt.compare(toWesternDigits(password), hash);
 }
 
 export async function setSessionCookie(payload: SessionPayload): Promise<void> {

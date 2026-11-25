@@ -93,7 +93,7 @@ export default function SetPinPage() {
               inputMode="numeric"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
-              className="mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base text-stone-900 focus:border-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-200"
+              className="latin-nums mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base text-stone-900 focus:border-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-200"
             />
           </div>
           <div>
@@ -106,7 +106,7 @@ export default function SetPinPage() {
               inputMode="numeric"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base text-stone-900 focus:border-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-200"
+              className="latin-nums mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base text-stone-900 focus:border-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-200"
             />
           </div>
           <div>
@@ -119,7 +119,7 @@ export default function SetPinPage() {
               inputMode="numeric"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base text-stone-900 focus:border-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-200"
+              className="latin-nums mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base text-stone-900 focus:border-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-200"
             />
           </div>
           <button

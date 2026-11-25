@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Download, FileSpreadsheet, RefreshCw, Upload } from "lucide-react";
+import { toWesternDigits } from "@/lib/myanmar-utils";
 
 interface PreviewRow {
   rowNumber: number;
@@ -193,9 +194,9 @@ export default function ExcelImport() {
                 inputMode="numeric"
                 maxLength={6}
                 value={tempPin}
-                onChange={(e) => setTempPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                onChange={(e) => setTempPin(toWesternDigits(e.target.value).replace(/\D/g, "").slice(0, 6))}
                 placeholder="ဥပမာ - 123789"
-                className="ml-2 w-32 rounded-xl border border-stone-300 px-3 py-2 text-sm"
+                className="latin-nums ml-2 w-32 rounded-xl border border-stone-300 px-3 py-2 text-sm"
               />
             </label>
             <button

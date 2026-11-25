@@ -382,21 +382,21 @@ export default function ProfilePage() {
             value={pwCurrent}
             onChange={(e) => setPwCurrent(e.target.value)}
             placeholder="လက်ရှိ စကားဝှက်"
-            className="rounded-xl border border-stone-300 px-3 py-2 text-sm"
+            className="latin-nums rounded-xl border border-stone-300 px-3 py-2 text-sm"
           />
           <input
             type="password"
             value={pwNew}
             onChange={(e) => setPwNew(e.target.value)}
             placeholder="စကားဝှက်အသစ်"
-            className="rounded-xl border border-stone-300 px-3 py-2 text-sm"
+            className="latin-nums rounded-xl border border-stone-300 px-3 py-2 text-sm"
           />
           <input
             type="password"
             value={pwConfirm}
             onChange={(e) => setPwConfirm(e.target.value)}
             placeholder="စကားဝှက်အသစ် (ထပ်ရိုက်ပါ)"
-            className="rounded-xl border border-stone-300 px-3 py-2 text-sm"
+            className="latin-nums rounded-xl border border-stone-300 px-3 py-2 text-sm"
           />
           <button
             type="submit"

@@ -1026,7 +1026,7 @@ export default function AdminDashboardPage() {
                 type="password"
                 value={credCurrent}
                 onChange={(e) => setCredCurrent(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-stone-300 px-4 py-2.5 text-sm"
+                className="latin-nums mt-1 w-full rounded-xl border border-stone-300 px-4 py-2.5 text-sm"
               />
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
@@ -1037,7 +1037,7 @@ export default function AdminDashboardPage() {
                   value={credPassword}
                   onChange={(e) => setCredPassword(e.target.value)}
                   placeholder="မပြောင်းလိုလျှင် ဗလာထားပါ"
-                  className="mt-1 w-full rounded-xl border border-stone-300 px-4 py-2.5 text-sm"
+                  className="latin-nums mt-1 w-full rounded-xl border border-stone-300 px-4 py-2.5 text-sm"
                 />
               </div>
               <div>
@@ -1048,7 +1048,7 @@ export default function AdminDashboardPage() {
                   type="password"
                   value={credConfirm}
                   onChange={(e) => setCredConfirm(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-stone-300 px-4 py-2.5 text-sm"
+                  className="latin-nums mt-1 w-full rounded-xl border border-stone-300 px-4 py-2.5 text-sm"
                 />
               </div>
             </div>
