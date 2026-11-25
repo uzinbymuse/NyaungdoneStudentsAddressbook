@@ -5,11 +5,16 @@
 // requests and print-freeze publications. Audit logs are deliberately
 // NOT included — a restore must never erase history.
 //
-// Password hashes are NEVER written to a downloaded backup file (a
-// 6-digit PIN hash is brute-forceable if the file leaks). Restoring
-// from a file therefore gives every account a fresh temporary PIN
-// chosen by the admin. The automatic safety snapshot stored in the
-// database DOES keep hashes, so Undo restores accounts exactly.
+// Downloaded backups DO contain password hashes, but only inside a
+// file encrypted with the admin's password (see backup-crypto.ts:
+// scrypt + AES-256-GCM) — so a restore keeps every account's own PIN
+// and a leaked file is useless without the password. The key comes
+// from the password as it was when the backup was downloaded, so an
+// old backup still needs the OLD admin password after a password
+// change. Old plain (unencrypted) backup files are still accepted by
+// restore, with the temp-PIN flow. The automatic safety snapshot
+// stored in the database also keeps hashes, so Undo restores accounts
+// exactly.
 
 export const BACKUP_VERSION = 1;
 export const BACKUP_APP = "ndaddbook";

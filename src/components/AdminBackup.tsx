@@ -48,11 +48,15 @@ export default function AdminBackup() {
   const [snapshot, setSnapshot] = useState<SnapshotInfo | null>(null);
   const [needsDbPush, setNeedsDbPush] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const [downloadPassword, setDownloadPassword] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
   const [tempPin, setTempPin] = useState("");
   const [preview, setPreview] = useState<{
     exportedAt: string;
     counts: Counts;
     issues: string[];
+    encrypted: boolean;
+    pinsPreserved: boolean;
   } | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
@@ -73,6 +77,43 @@ export default function AdminBackup() {
     loadStatus();
   }, [loadStatus]);
 
+  const doDownload = async () => {
+    if (!downloadPassword) {
+      setErr("Backup ထုတ်ယူရန် Admin စကားဝှက် ထည့်ပါ။");
+      return;
+    }
+    setBusy(true);
+    setErr("");
+    setMsg("");
+    try {
+      const res = await fetch("/api/admin/backup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ step: "download", password: downloadPassword }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Backup ထုတ်မရပါ။");
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-");
+      a.download = `ndaddbook-backup-${stamp}.enc.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      setDownloadPassword("");
+      setMsg(
+        "Backup ထုတ်ယူပြီးပါပြီ — ဖိုင်သည် Admin စကားဝှက်ဖြင့် ကာကွယ်ထားသည်။ Restore လုပ်တိုင်း ထိုစကားဝှက် (backup လုပ်တုန်းက စကားဝှက်) လိုပါမည်။"
+      );
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Backup ထုတ်မရပါ။");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const doPreview = async () => {
     if (!file) {
       setErr("Backup (.json) ဖိုင် ရွေးပါ။");
@@ -85,6 +126,7 @@ export default function AdminBackup() {
       const form = new FormData();
       form.append("step", "preview");
       form.append("file", file);
+      form.append("adminPassword", adminPassword);
       const res = await fetch("/api/admin/backup", { method: "POST", body: form });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Preview ကြည့်မရပါ။");
@@ -98,13 +140,15 @@ export default function AdminBackup() {
 
   const doConfirm = async () => {
     if (!file || !preview) return;
-    if (tempPin.length !== 6) {
+    if (!preview.pinsPreserved && tempPin.length !== 6) {
       setErr("ယာယီ PIN ကို ဂဏန်း ၆ လုံး ထည့်ပါ။");
       return;
     }
     if (
       !window.confirm(
-        "Restore လုပ်လျှင် လက်ရှိဒေတာ အားလုံး အစားထိုးခံရမည်။ Restore မလုပ်မီ လက်ရှိအခြေအနေကို safety snapshot အဖြစ် သိမ်းထားပါမည်။ ဆက်လုပ်မလား?"
+        preview.pinsPreserved
+          ? "Restore လုပ်လျှင် လက်ရှိဒေတာ အားလုံး အစားထိုးခံရမည်။ အကောင့်များ ကိုယ့် PIN အတိုင်း ဆက်ဝင်လို့ရပါမည်။ Restore မလုပ်မီ လက်ရှိအခြေအနေကို safety snapshot အဖြစ် သိမ်းထားပါမည်။ ဆက်လုပ်မလား?"
+          : "Restore လုပ်လျှင် လက်ရှိဒေတာ အားလုံး အစားထိုးခံရမည်။ Restore မလုပ်မီ လက်ရှိအခြေအနေကို safety snapshot အဖြစ် သိမ်းထားပါမည်။ ဆက်လုပ်မလား?"
       )
     ) {
       return;
@@ -116,15 +160,19 @@ export default function AdminBackup() {
       const form = new FormData();
       form.append("step", "confirm");
       form.append("file", file);
-      form.append("tempPin", tempPin);
+      form.append("adminPassword", adminPassword);
+      if (!preview.pinsPreserved) form.append("tempPin", tempPin);
       const res = await fetch("/api/admin/backup", { method: "POST", body: form });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Restore လုပ်မရပါ။");
       setMsg(
-        `Restore ပြီးပါပြီ — Profile ${data.counts.profiles} ခု၊ အကောင့် ${data.counts.users} ခု ပြန်ထည့်ပြီးပါပြီ။ အဖွဲ့ဝင်များ ယာယီ PIN ဖြင့် ဝင်ပြီး PIN အသစ် ထားရမည် (ရက် ၆၀ အတွင်း)။`
+        data.pinsPreserved
+          ? `Restore ပြီးပါပြီ — Profile ${data.counts.profiles} ခု၊ အကောင့် ${data.counts.users} ခု ပြန်ထည့်ပြီးပါပြီ။ အကောင့်များ ကိုယ့် PIN အတိုင်း ဆက်ဝင်လို့ရပါပြီ။`
+          : `Restore ပြီးပါပြီ — Profile ${data.counts.profiles} ခု၊ အကောင့် ${data.counts.users} ခု ပြန်ထည့်ပြီးပါပြီ။ အဖွဲ့ဝင်များ ယာယီ PIN ဖြင့် ဝင်ပြီး PIN အသစ် ထားရမည် (ရက် ၆၀ အတွင်း)။`
       );
       setPreview(null);
       setFile(null);
+      setAdminPassword("");
       setTempPin("");
       loadStatus();
     } catch (e) {
@@ -190,15 +238,33 @@ export default function AdminBackup() {
         </div>
         <p className="mt-1 text-sm text-stone-600">
           ကျောင်းဆောင်၊ အကောင့်၊ Profile၊ Consent၊ တောင်းဆိုမှုများနှင့် Print Freeze အားလုံး
-          ပါသော .json ဖိုင် ရရှိမည်။ ဖိုင်တွင် ဖုန်းနံပါတ်များ ပါမည် — လုံခြုံသောနေရာတွင်
-          သိမ်းပါ။ စကားဝှက်များ မပါပါ။
+          ပါသော ဖိုင် ရရှိမည်။ ဖိုင်တွင် ဖုန်းနံပါတ်များ ပါမည် — လုံခြုံသောနေရာတွင်
+          သိမ်းပါ။ ဖိုင်သည် <strong>Admin စကားဝှက်ဖြင့် ကာကွယ်ထားသည်</strong> — ဖိုင်ပျောက်သွားလည်း
+          စကားဝှက်မသိရင် ဖွင့်လို့မရပါ။ Restore လုပ်လျှင် အကောင့်များ ကိုယ့် PIN အတိုင်း
+          ဆက်ဝင်လို့ရပါမည်။ <strong>သတိပြုရန်:</strong> Restore လုပ်တိုင်း backup လုပ်တုန်းက
+          Admin စကားဝှက် လိုပါမည် — Admin စကားဝှက် ပြောင်းထားလျှင် အဟောင်းစကားဝှက်နဲ့
+          ဖွင့်ရမည်။
         </p>
-        <a
-          href="/api/admin/backup"
-          className="mt-3 inline-flex items-center gap-2 rounded-xl bg-amber-800 px-5 py-2.5 text-sm font-bold text-white hover:bg-amber-900"
-        >
-          <Database className="h-4 w-4" /> Backup (.json) ဒေါင်းလုဒ်လုပ်မည်
-        </a>
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <label className="text-sm font-semibold text-stone-800">
+            Admin စကားဝှက်
+            <input
+              type="password"
+              value={downloadPassword}
+              onChange={(e) => setDownloadPassword(e.target.value)}
+              placeholder="လက်ရှိ Admin စကားဝှက်"
+              className="latin-nums ml-2 w-48 rounded-xl border border-stone-300 px-3 py-2 text-sm"
+            />
+          </label>
+          <button
+            type="button"
+            onClick={doDownload}
+            disabled={busy || !downloadPassword}
+            className="inline-flex items-center gap-2 rounded-xl bg-amber-800 px-5 py-2.5 text-sm font-bold text-white hover:bg-amber-900 disabled:opacity-50"
+          >
+            <Database className="h-4 w-4" /> Backup ဒေါင်းလုဒ်လုပ်မည်
+          </button>
+        </div>
       </div>
 
       {/* Restore */}
@@ -209,9 +275,11 @@ export default function AdminBackup() {
         </div>
         <p className="mt-1 text-sm text-stone-600">
           Restore လုပ်လျှင် လက်ရှိဒေတာ အားလုံး အစားထိုးခံရမည်။ Restore မလုပ်မီ လက်ရှိအခြေအနေကို
-          safety snapshot အဖြစ် အလိုအလျောက် သိမ်းထားပါမည်။ Backup ဖိုင်တွင် စကားဝှက် မပါသဖြင့်
-          ပြန်ထည့်ပြီးသော အကောင့်များအားလုံး အောက်ပါ ယာယီ PIN ဖြင့် ဝင်ပြီး PIN အသစ် ထားရမည်
-          (ရက် ၆၀ အတွင်း)။
+          safety snapshot အဖြစ် အလိုအလျောက် သိမ်းထားပါမည်။ <strong>Admin စကားဝှက်ဖြင့်
+          ကာကွယ်ထားသော backup ဖိုင်</strong> ဆိုလျှင် အကောင့်များ ကိုယ့် PIN အတိုင်း
+          ဆက်ဝင်လို့ရပါမည် (ဖိုင်လုပ်တုန်းက Admin စကားဝှက် လိုပါသည်)။ <strong>အဟောင်း
+          ကာကွယ်မထားသော backup ဖိုင်</strong> ဆိုလျှင် ပြန်ထည့်ပြီးသော အကောင့်များအားလုံး
+          အောက်ပါ ယာယီ PIN ဖြင့် ဝင်ပြီး PIN အသစ် ထားရမည် (ရက် ၆၀ အတွင်း)။
         </p>
         <div className="mt-3 flex flex-wrap items-center gap-3">
           <label className="text-sm font-semibold text-stone-800">
@@ -227,19 +295,31 @@ export default function AdminBackup() {
             />
           </label>
           <label className="text-sm font-semibold text-stone-800">
-            ယာယီ PIN (ဂဏန်း ၆ လုံး)
+            Admin စကားဝှက်
             <input
-              type="text"
-              inputMode="numeric"
-              maxLength={6}
-              value={tempPin}
-              onChange={(e) =>
-                setTempPin(toWesternDigits(e.target.value).replace(/\D/g, "").slice(0, 6))
-              }
-              placeholder="ဥပမာ - 123789"
-              className="latin-nums ml-2 w-32 rounded-xl border border-stone-300 px-3 py-2 text-sm"
+              type="password"
+              value={adminPassword}
+              onChange={(e) => setAdminPassword(e.target.value)}
+              placeholder="backup လုပ်တုန်းက စကားဝှက်"
+              className="latin-nums ml-2 w-48 rounded-xl border border-stone-300 px-3 py-2 text-sm"
             />
           </label>
+          {preview && !preview.encrypted && (
+            <label className="text-sm font-semibold text-stone-800">
+              ယာယီ PIN (ဂဏန်း ၆ လုံး)
+              <input
+                type="text"
+                inputMode="numeric"
+                maxLength={6}
+                value={tempPin}
+                onChange={(e) =>
+                  setTempPin(toWesternDigits(e.target.value).replace(/\D/g, "").slice(0, 6))
+                }
+                placeholder="ဥပမာ - 123789"
+                className="latin-nums ml-2 w-32 rounded-xl border border-stone-300 px-3 py-2 text-sm"
+              />
+            </label>
+          )}
           <button
             type="button"
             onClick={doPreview}
@@ -255,6 +335,11 @@ export default function AdminBackup() {
             <p className="text-sm font-semibold text-amber-900">
               ဤ Backup ဖိုင်တွင် ပါဝင်သည်များ (ထုတ်ယူခဲ့သည်:{" "}
               {new Date(preview.exportedAt).toLocaleString("en-GB")})
+            </p>
+            <p className="mt-1 text-sm text-amber-800">
+              {preview.encrypted
+                ? "Admin စကားဝှက်ဖြင့် ကာကွယ်ထားသော ဖိုင် — Restore လုပ်လျှင် အကောင့်များ ကိုယ့် PIN အတိုင်း ဆက်ဝင်လို့ရပါမည်။"
+                : "ကာကွယ်မထားသော အဟောင်း ဖိုင် — Restore လုပ်လျှင် အကောင့်များ ယာယီ PIN ဖြင့် ဝင်ပြီး PIN အသစ် ထားရမည် (ရက် ၆၀ အတွင်း)။"}
             </p>
             <CountsTable counts={preview.counts} />
             {preview.issues.map((issue) => (
