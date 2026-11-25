@@ -35,6 +35,7 @@ export async function POST(req: NextRequest) {
     const batchYearDisplay = normalizeMyanmarText(String(body.batchYearDisplay || ""));
     const dormitory = normalizeMyanmarText(String(body.dormitory || ""));
     const currentRoleOrMonastery = normalizeMyanmarText(String(body.currentRoleOrMonastery || ""));
+    const currentMonastery = normalizeMyanmarText(String(body.currentMonastery || ""));
     const phonePrimary = toWesternDigits(String(body.phonePrimary || "")).trim();
     const city = normalizeMyanmarText(String(body.city || ""));
     const password = String(body.password || "");
@@ -140,6 +141,7 @@ export async function POST(req: NextRequest) {
           dormitory,
           stayPeriod: body.stayPeriod ? normalizeMyanmarText(String(body.stayPeriod)) : null,
           currentRoleOrMonastery,
+          currentMonastery: currentMonastery || null,
           messageToAlumni: body.messageToAlumni
             ? normalizeMyanmarText(String(body.messageToAlumni))
             : null,

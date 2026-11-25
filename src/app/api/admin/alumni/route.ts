@@ -127,6 +127,9 @@ export async function POST(req: NextRequest) {
       if (p.currentRoleOrMonastery) {
         updateFields.currentRoleOrMonastery = normalizeMyanmarText(p.currentRoleOrMonastery);
       }
+      if (p.currentMonastery !== undefined) {
+        updateFields.currentMonastery = normalizeMyanmarText(p.currentMonastery || "");
+      }
       if (p.city) updateFields.city = normalizeMyanmarText(p.city);
       if (p.wardOrVillage !== undefined) {
         updateFields.wardOrVillage = normalizeMyanmarText(p.wardOrVillage || "");
@@ -211,12 +214,13 @@ export async function POST(req: NextRequest) {
     const dormitory =
       str(f.dormitory) === "အခြား" ? norm(f.dormitoryOther) : norm(f.dormitory);
     const currentRoleOrMonastery = norm(f.currentRoleOrMonastery);
+    const currentMonastery = normOrNull(f.currentMonastery);
     const city = norm(f.city);
     const phonePrimary = toWesternDigits(str(f.phonePrimary)).trim();
 
     if (!fullName || !dormitory || !currentRoleOrMonastery || !city || !phonePrimary) {
       return NextResponse.json(
-        { error: "အမည်၊ ကျောင်းဆောင်၊ လက်ရှိတာဝန်၊ မြို့နှင့် ဖုန်းနံပါတ်တို့ကို ပြည့်စုံစွာ ဖြည့်ပါ။" },
+        { error: "အမည်၊ ကျောင်းဆောင်၊ အလုပ်/တာဝန်၊ မြို့နှင့် ဖုန်းနံပါတ်တို့ကို ပြည့်စုံစွာ ဖြည့်ပါ။" },
         { status: 400 }
       );
     }
@@ -286,6 +290,7 @@ export async function POST(req: NextRequest) {
       dormitory,
       stayPeriod: normOrNull(f.stayPeriod),
       currentRoleOrMonastery,
+      currentMonastery,
       messageToAlumni: normOrNull(f.messageToAlumni),
       countryCode,
       countryName,
@@ -322,6 +327,7 @@ export async function POST(req: NextRequest) {
       dormitory: existing.dormitory,
       stayPeriod: existing.stayPeriod,
       currentRoleOrMonastery: existing.currentRoleOrMonastery,
+      currentMonastery: existing.currentMonastery,
       messageToAlumni: existing.messageToAlumni,
       countryCode: existing.countryCode,
       countryName: existing.countryName,

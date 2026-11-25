@@ -74,6 +74,7 @@ export async function GET() {
     dormitory: p.dormitory,
     stayPeriod: p.stayPeriod,
     currentRoleOrMonastery: p.currentRoleOrMonastery,
+    currentMonastery: p.currentMonastery,
     messageToAlumni: p.messageToAlumni,
     countryCode: p.countryCode,
     countryName: p.countryName,

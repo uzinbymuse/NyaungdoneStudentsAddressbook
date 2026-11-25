@@ -40,7 +40,13 @@ export const IMPORT_COLUMNS: ImportColumn[] = [
     aliases: ["ဘတ်ချ်", "Batch", "ကျောင်းဝင်/ဘွဲ့ရ မြန်မာခုနှစ် (Batch)"],
   },
   { key: "dormitory", header: "ကျောင်းဆောင်", required: true },
-  { key: "currentRoleOrMonastery", header: "လက်ရှိတာဝန်", required: true },
+  { key: "currentMonastery", header: "လက်ရှိကျောင်းတိုက်-ကျောင်းဆောင်", required: false },
+  {
+    key: "currentRoleOrMonastery",
+    header: "အလုပ်/တာဝန်",
+    required: true,
+    aliases: ["လက်ရှိတာဝန်"],
+  },
   { key: "countryName", header: "နိုင်ငံ", required: false },
   { key: "region", header: "တိုင်း/ပြည်နယ်", required: false },
   { key: "townshipOrCity", header: "မြို့နယ်/မြို့", required: true, aliases: ["မြို့နယ်", "မြို့"] },
@@ -66,6 +72,7 @@ export interface ValidImportRow {
   batchYearDisplay: string;
   batchYearMm: number | null;
   dormitory: string;
+  currentMonastery: string | null;
   currentRoleOrMonastery: string;
   countryCode: string;
   countryName: string;
@@ -173,8 +180,10 @@ function validateRow(
   const dormitory = normalizeMyanmarText(raw.dormitory || "");
   if (!dormitory) errors.push("ကျောင်းဆောင် မပါပါ");
 
+  const currentMonastery = normalizeMyanmarText(raw.currentMonastery || "");
+
   const currentRoleOrMonastery = normalizeMyanmarText(raw.currentRoleOrMonastery || "");
-  if (!currentRoleOrMonastery) errors.push("လက်ရှိတာဝန် မပါပါ");
+  if (!currentRoleOrMonastery) errors.push("အလုပ်/တာဝန် မပါပါ");
 
   const townshipOrCity = normalizeMyanmarText(raw.townshipOrCity || "");
   if (!townshipOrCity) errors.push("မြို့နယ်/မြို့ မပါပါ");
@@ -207,6 +216,7 @@ function validateRow(
     batchYearDisplay,
     batchYearMm,
     dormitory,
+    currentMonastery: currentMonastery || null,
     currentRoleOrMonastery,
     countryCode: country.countryCode,
     countryName: country.countryName,

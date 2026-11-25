@@ -24,6 +24,7 @@ async function buildPrintEligibleList() {
       batchYearDisplay: p.batchYearDisplay,
       dormitory: p.dormitory,
       currentRoleOrMonastery: p.currentRoleOrMonastery,
+      currentMonastery: p.currentMonastery,
       isDomestic: p.isDomestic,
       countryName: p.countryName,
       region: p.region,

@@ -84,9 +84,9 @@ async function templateWorkbook(): Promise<Buffer> {
     `${LISTS_SHEET}!$${col}$2:$${col}$${n + 1}`;
   const validations = [
     { sqref: `B2:B${lastRow}`, formula1: `"ရဟန်း,လူ"` },
-    { sqref: `G2:G${lastRow}`, formula1: range("A", countries.length) },
-    { sqref: `H2:H${lastRow}`, formula1: range("B", regions.length) },
-    { sqref: `I2:I${lastRow}`, formula1: range("C", townships.length) },
+    { sqref: `H2:H${lastRow}`, formula1: range("A", countries.length) },
+    { sqref: `I2:I${lastRow}`, formula1: range("B", regions.length) },
+    { sqref: `J2:J${lastRow}`, formula1: range("C", townships.length) },
     ...(dormitories.length > 0
       ? [{ sqref: `E2:E${lastRow}`, formula1: range("D", dormitories.length) }]
       : []),
@@ -365,6 +365,7 @@ export async function POST(req: NextRequest) {
             batchYearMm: data.batchYearMm,
             batchYearDisplay: data.batchYearDisplay,
             dormitory: data.dormitory,
+            currentMonastery: data.currentMonastery,
             currentRoleOrMonastery: data.currentRoleOrMonastery,
             countryCode: data.countryCode,
             countryName: data.countryName,

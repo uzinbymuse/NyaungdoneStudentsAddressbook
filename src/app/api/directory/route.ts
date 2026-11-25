@@ -83,6 +83,7 @@ export async function GET(req: NextRequest) {
       dormitory: r.dormitory,
       stayPeriod: r.stayPeriod,
       currentRoleOrMonastery: r.currentRoleOrMonastery,
+      currentMonastery: r.currentMonastery,
       messageToAlumni: r.messageToAlumni,
       photoUrl: r.photoUrl,
       countryCode: r.countryCode,

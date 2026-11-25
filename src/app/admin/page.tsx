@@ -34,6 +34,7 @@ interface AdminAlumni {
   dormitory: string;
   stayPeriod?: string | null;
   currentRoleOrMonastery: string;
+  currentMonastery?: string | null;
   messageToAlumni?: string | null;
   countryCode?: string;
   countryName: string;
@@ -80,6 +81,7 @@ interface EditFormState {
   dormitoryOther: string;
   stayPeriod: string;
   currentRoleOrMonastery: string;
+  currentMonastery: string;
   messageToAlumni: string;
   countryCode: string;
   countryName: string;
@@ -117,6 +119,7 @@ interface PrintEntry {
   batchYearDisplay: string;
   dormitory: string;
   currentRoleOrMonastery: string;
+  currentMonastery?: string | null;
   isDomestic: boolean;
   countryName: string;
   region?: string | null;
@@ -318,6 +321,7 @@ export default function AdminDashboardPage() {
       dormitoryOther: inList ? "" : item.dormitory || "",
       stayPeriod: item.stayPeriod || "",
       currentRoleOrMonastery: item.currentRoleOrMonastery || "",
+      currentMonastery: item.currentMonastery || "",
       messageToAlumni: item.messageToAlumni || "",
       countryCode: item.countryCode || "MM",
       countryName: item.countryName || "မြန်မာ",
@@ -385,6 +389,7 @@ export default function AdminDashboardPage() {
       "Degree",
       "BatchYear",
       "Dormitory",
+      "CurrentMonastery",
       "RoleOrMonastery",
       "Type",
       "Country",
@@ -403,6 +408,7 @@ export default function AdminDashboardPage() {
           r.degreeName || "",
           r.batchYearDisplay,
           r.dormitory,
+          r.currentMonastery || "",
           r.currentRoleOrMonastery,
           r.isDomestic ? "Domestic" : "International",
           r.countryName,
@@ -608,7 +614,9 @@ export default function AdminDashboardPage() {
                       </span>
                     </h3>
                     <p className="text-sm text-stone-700">
-                      {item.dormitory} · {item.currentRoleOrMonastery}
+                      {item.dormitory}
+                      {item.currentMonastery ? ` · ${item.currentMonastery}` : ""} ·{" "}
+                      {item.currentRoleOrMonastery}
                     </p>
                     <p className="text-xs text-stone-500">
                       {item.countryName} {item.region ? `· ${item.region}` : ""} · {item.city} · ဖုန်း:{" "}
@@ -1183,7 +1191,15 @@ export default function AdminDashboardPage() {
                   />
                 </div>
                 <div>
-                  <label className={lbl}>လက်ရှိ ကျောင်းတိုက် / တာဝန် *</label>
+                  <label className={lbl}>လက်ရှိကျောင်းတိုက်-ကျောင်းဆောင်</label>
+                  <input
+                    value={editForm.currentMonastery}
+                    onChange={(e) => setEdit({ currentMonastery: e.target.value })}
+                    className={inp}
+                  />
+                </div>
+                <div>
+                  <label className={lbl}>အလုပ်/တာဝန် *</label>
                   <input
                     value={editForm.currentRoleOrMonastery}
                     onChange={(e) => setEdit({ currentRoleOrMonastery: e.target.value })}

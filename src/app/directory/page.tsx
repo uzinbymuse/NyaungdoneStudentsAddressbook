@@ -17,6 +17,7 @@ interface AlumniItem {
   dormitory: string;
   stayPeriod?: string | null;
   currentRoleOrMonastery: string;
+  currentMonastery?: string | null;
   messageToAlumni?: string | null;
   countryCode: string;
   countryName: string;
@@ -245,8 +246,13 @@ export default function DirectoryPage() {
                     <strong>ကျောင်းဆောင်:</strong> {item.dormitory}
                     {item.stayPeriod ? ` (${item.stayPeriod})` : ""}
                   </p>
+                  {item.currentMonastery ? (
+                    <p>
+                      <strong>လက်ရှိကျောင်းတိုက်:</strong> {item.currentMonastery}
+                    </p>
+                  ) : null}
                   <p>
-                    <strong>လက်ရှိတာဝန်:</strong> {item.currentRoleOrMonastery}
+                    <strong>အလုပ်/တာဝန်:</strong> {item.currentRoleOrMonastery}
                   </p>
                   <p className="flex items-start gap-1.5">
                     <MapPin className="mt-1 h-4 w-4 shrink-0 text-stone-500" />

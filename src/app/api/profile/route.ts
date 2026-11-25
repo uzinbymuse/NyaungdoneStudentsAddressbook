@@ -39,6 +39,7 @@ export async function GET() {
       dormitory: profile.dormitory,
       stayPeriod: profile.stayPeriod,
       currentRoleOrMonastery: profile.currentRoleOrMonastery,
+      currentMonastery: profile.currentMonastery,
       messageToAlumni: profile.messageToAlumni,
       countryCode: profile.countryCode,
       countryName: profile.countryName,

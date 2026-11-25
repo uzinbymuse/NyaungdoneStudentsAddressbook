@@ -93,6 +93,11 @@ model AlumniProfile {
   dormitory              String
   stayPeriod             String?
   currentRoleOrMonastery String
+  // 2026-11-25 split: the form field "လက်ရှိ ကျောင်းတိုက် / အလုပ် / တာဝန်" became
+  // two fields — currentMonastery (optional, လက်ရှိကျောင်းတိုက်-ကျောင်းဆောင်) and
+  // currentRoleOrMonastery (now holds only အလုပ်/တာဝန်; name kept so the existing
+  // column and its data are untouched).
+  currentMonastery      String?
   messageToAlumni        String?
   photoUrl               String?
 

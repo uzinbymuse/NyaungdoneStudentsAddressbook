@@ -14,6 +14,7 @@ interface ProfileData {
   dormitory: string;
   stayPeriod?: string | null;
   currentRoleOrMonastery: string;
+  currentMonastery?: string | null;
   countryName: string;
   isDomestic: boolean;
   region?: string | null;
@@ -55,6 +56,7 @@ export default function ProfilePage() {
   const [notice, setNotice] = useState("");
 
   const [corrRole, setCorrRole] = useState("");
+  const [corrMonastery, setCorrMonastery] = useState("");
   const [corrCity, setCorrCity] = useState("");
   const [corrPhone, setCorrPhone] = useState("");
   const [corrReason, setCorrReason] = useState("");
@@ -94,6 +96,7 @@ export default function ProfilePage() {
     e.preventDefault();
     const proposedData: Record<string, string> = {};
     if (corrRole.trim()) proposedData.currentRoleOrMonastery = corrRole.trim();
+    if (corrMonastery.trim()) proposedData.currentMonastery = corrMonastery.trim();
     if (corrCity.trim()) proposedData.city = corrCity.trim();
     if (corrPhone.trim()) proposedData.phonePrimary = corrPhone.trim();
 
@@ -205,8 +208,13 @@ export default function ProfilePage() {
         </div>
 
         <div className="mt-4 grid gap-2 text-sm text-stone-700 sm:grid-cols-2">
+          {profile.currentMonastery ? (
+            <p>
+              <strong>လက်ရှိကျောင်းတိုက်:</strong> {profile.currentMonastery}
+            </p>
+          ) : null}
           <p>
-            <strong>လက်ရှိတာဝန်:</strong> {profile.currentRoleOrMonastery}
+            <strong>အလုပ်/တာဝန်:</strong> {profile.currentRoleOrMonastery}
           </p>
           <p>
             <strong>နေထိုင်ရာ:</strong> {profile.countryName} · {profile.region || ""} · {profile.city}
@@ -237,7 +245,9 @@ export default function ProfilePage() {
               {profile.degreeName ? ` (${profile.degreeName})` : ""} — {profile.batchYearDisplay}
             </p>
             <p className="mt-1">
-              {profile.dormitory} · {profile.currentRoleOrMonastery}
+              {profile.dormitory}
+              {profile.currentMonastery ? ` · ${profile.currentMonastery}` : ""} ·{" "}
+              {profile.currentRoleOrMonastery}
             </p>
             <p className="mt-1">
               {dedupeAddressParts([
@@ -312,6 +322,13 @@ export default function ProfilePage() {
           Admin မှ စစ်ဆေးအတည်ပြုပြီးမှသာ အဓိကမှတ်တမ်းတွင် ပြောင်းလဲပါမည်။
         </p>
         <form onSubmit={submitCorrection} className="mt-4 grid gap-3 sm:grid-cols-3">
+          <input
+            type="text"
+            value={corrMonastery}
+            onChange={(e) => setCorrMonastery(e.target.value)}
+            placeholder="လက်ရှိကျောင်းတိုက် (အသစ်)"
+            className="rounded-xl border border-stone-300 px-3 py-2 text-sm"
+          />
           <input
             type="text"
             value={corrRole}

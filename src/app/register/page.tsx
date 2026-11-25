@@ -29,6 +29,7 @@ export default function RegisterPage() {
     city: "",
     wardOrVillage: "",
     currentRoleOrMonastery: "",
+    currentMonastery: "",
     messageToAlumni: "",
     phonePrimary: "",
     phoneSecondary: "",
@@ -381,14 +382,27 @@ export default function RegisterPage() {
 
             <div>
               <label className="block text-base font-semibold text-stone-800">
-                လက်ရှိ ကျောင်းတိုက် / အလုပ် / တာဝန် <span className="text-red-600">*</span>
+                လက်ရှိကျောင်းတိုက်-ကျောင်းဆောင်
+              </label>
+              <input
+                type="text"
+                value={form.currentMonastery}
+                onChange={(e) => setForm({ ...form, currentMonastery: e.target.value })}
+                placeholder="လက်ရှိ သီတင်းသုံးနေသော ကျောင်းတိုက် (ရှိလျှင်)"
+                className="mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
+              />
+            </div>
+
+            <div>
+              <label className="block text-base font-semibold text-stone-800">
+                အလုပ်/တာဝန် <span className="text-red-600">*</span>
               </label>
               <input
                 type="text"
                 required
                 value={form.currentRoleOrMonastery}
                 onChange={(e) => setForm({ ...form, currentRoleOrMonastery: e.target.value })}
-                placeholder="ဥပမာ - ကျောင်းထိုင် / စာချ / ကျောင်းတိုက်အမည် / အလုပ်အကိုင်"
+                placeholder="ဥပမာ - ကျောင်းထိုင် / စာချ / အလုပ်အကိုင်"
                 className="mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
               />
             </div>

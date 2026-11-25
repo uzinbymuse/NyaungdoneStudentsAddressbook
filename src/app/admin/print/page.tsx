@@ -70,7 +70,9 @@ export default async function AdminPrintBookPage() {
                 {p.degreeName ? ` (${p.degreeName})` : ""} — {p.batchYearDisplay}
               </div>
               <div className="text-stone-700">
-                {p.dormitory} · {p.currentRoleOrMonastery}
+                {p.dormitory}
+                {p.currentMonastery ? ` · ${p.currentMonastery}` : ""} ·{" "}
+                {p.currentRoleOrMonastery}
               </div>
               <div className="text-stone-700">
                 {dedupeAddressParts([
@@ -103,7 +105,9 @@ export default async function AdminPrintBookPage() {
                 {p.degreeName ? ` (${p.degreeName})` : ""} — {p.batchYearDisplay}
               </div>
               <div className="text-stone-700">
-                {p.dormitory} · {p.currentRoleOrMonastery}
+                {p.dormitory}
+                {p.currentMonastery ? ` · ${p.currentMonastery}` : ""} ·{" "}
+                {p.currentRoleOrMonastery}
               </div>
               <div className="text-stone-700">
                 {dedupeAddressParts([

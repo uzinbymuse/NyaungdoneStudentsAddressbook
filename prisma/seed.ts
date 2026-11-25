@@ -68,6 +68,7 @@ async function main() {
         dormitory: "ပင်မကျောင်းဆောင်",
         stayPeriod: "၁၃၆၃ မှ ၁၃၆၈ ထိ",
         currentRoleOrMonastery: "ကျောင်းထိုင်ဆရာတော်",
+        currentMonastery: "ညောင်တုန်းမြို့ ကျောင်းတိုက်",
         messageToAlumni: "ခေတ်ပြိုင်သူငယ်ချင်းများ ပြန်လည်ဆုံတွေ့ရန် ကြိုဆိုပါသည်။",
         countryCode: "MM",
         countryName: "မြန်မာ",
