@@ -59,7 +59,7 @@ export default function MembershipCheck() {
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           placeholder="ဥပမာ - 09xxxxxxxxx"
-          className="flex-1 rounded-xl border border-stone-300 px-4 py-3 text-base"
+          className="latin-nums flex-1 rounded-xl border border-stone-300 px-4 py-3 text-base"
         />
         <button
           type="submit"

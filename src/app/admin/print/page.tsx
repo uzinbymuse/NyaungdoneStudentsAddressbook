@@ -81,7 +81,9 @@ export default async function AdminPrintBookPage() {
                 ]).join("၊ ")}
               </div>
               {p.showPhonePrint && (
-                <div className="text-stone-700">ဖုန်း: {decryptField(p.phonePrimaryEnc)}</div>
+                <div className="text-stone-700">
+                  ဖုန်း: <span className="latin-nums">{decryptField(p.phonePrimaryEnc)}</span>
+                </div>
               )}
             </div>
           ))}
@@ -112,7 +114,9 @@ export default async function AdminPrintBookPage() {
                 ]).join("၊ ")}
               </div>
               {p.showPhonePrint && (
-                <div className="text-stone-700">ဖုန်း: {decryptField(p.phonePrimaryEnc)}</div>
+                <div className="text-stone-700">
+                  ဖုန်း: <span className="latin-nums">{decryptField(p.phonePrimaryEnc)}</span>
+                </div>
               )}
             </div>
           ))}

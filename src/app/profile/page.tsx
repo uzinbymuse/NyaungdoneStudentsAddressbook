@@ -212,7 +212,8 @@ export default function ProfilePage() {
             <strong>နေထိုင်ရာ:</strong> {profile.countryName} · {profile.region || ""} · {profile.city}
           </p>
           <p>
-            <strong>ဖုန်း (အဓိက):</strong> {profile.phonePrimary}
+            <strong>ဖုန်း (အဓိက):</strong>{" "}
+            <span className="latin-nums">{profile.phonePrimary}</span>
           </p>
           <p>
             <strong>နောက်ဆုံးအတည်ပြုချိန်:</strong>{" "}
@@ -248,7 +249,12 @@ export default function ProfilePage() {
               ]).join("၊ ")}
             </p>
             <p className="mt-1 text-stone-600">
-              ဖုန်း: {profile.showPhonePrint ? profile.phonePrimary : "(စာအုပ်တွင် မထည့်ပါ)"}
+              ဖုန်း:{" "}
+              {profile.showPhonePrint ? (
+                <span className="latin-nums">{profile.phonePrimary}</span>
+              ) : (
+                "(စာအုပ်တွင် မထည့်ပါ)"
+              )}
             </p>
           </div>
         ) : (
@@ -325,7 +331,7 @@ export default function ProfilePage() {
             value={corrPhone}
             onChange={(e) => setCorrPhone(e.target.value)}
             placeholder="ဖုန်းနံပါတ် (အသစ်)"
-            className="rounded-xl border border-stone-300 px-3 py-2 text-sm"
+            className="latin-nums rounded-xl border border-stone-300 px-3 py-2 text-sm"
           />
           <input
             type="text"

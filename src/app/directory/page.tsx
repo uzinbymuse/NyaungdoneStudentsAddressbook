@@ -264,7 +264,7 @@ export default function DirectoryPage() {
                   {item.phoneDisplay && (
                     <p className="flex items-center gap-1.5">
                       <Phone className="h-4 w-4 shrink-0 text-stone-500" />
-                      <span>{item.phoneDisplay}</span>
+                      <span className="latin-nums">{item.phoneDisplay}</span>
                       {!item.phoneRevealed && (
                         <span className="inline-flex items-center gap-1 rounded bg-stone-100 px-2 py-0.5 text-xs text-stone-500">
                           <Lock className="h-3 w-3" /> ဖုံးကွယ်ထားသည်

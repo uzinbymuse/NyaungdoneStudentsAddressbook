@@ -612,7 +612,7 @@ export default function AdminDashboardPage() {
                     </p>
                     <p className="text-xs text-stone-500">
                       {item.countryName} {item.region ? `· ${item.region}` : ""} · {item.city} · ဖုန်း:{" "}
-                      {item.phonePrimary}
+                      <span className="latin-nums">{item.phonePrimary}</span>
                     </p>
                     {(item.referrerName || item.bestContactTime || item.adminNote) && (
                       <div className="mt-2 rounded-lg bg-stone-50 p-2 text-xs text-stone-600">
@@ -1258,7 +1258,7 @@ export default function AdminDashboardPage() {
                   <input
                     value={editForm.phonePrimary}
                     onChange={(e) => setEdit({ phonePrimary: e.target.value })}
-                    className={inp}
+                    className={`${inp} latin-nums`}
                   />
                 </div>
                 <div>
@@ -1266,7 +1266,7 @@ export default function AdminDashboardPage() {
                   <input
                     value={editForm.phoneSecondary}
                     onChange={(e) => setEdit({ phoneSecondary: e.target.value })}
-                    className={inp}
+                    className={`${inp} latin-nums`}
                   />
                 </div>
                 <div>

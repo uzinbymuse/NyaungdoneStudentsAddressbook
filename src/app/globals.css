@@ -29,6 +29,14 @@
   font-display: swap;
 }
 
+/* Phone numbers (and other codes): always Latin digits — never the
+   Pyidaungsu Numbers glyphs, so 09... stays 09... instead of ၀၉... */
+.latin-nums {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
 :root {
   --background: #faf8f5;
   --foreground: #1c1917;

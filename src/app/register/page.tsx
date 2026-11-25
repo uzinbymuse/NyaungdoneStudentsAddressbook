@@ -424,7 +424,7 @@ export default function RegisterPage() {
                   value={form.phonePrimary}
                   onChange={(e) => setForm({ ...form, phonePrimary: e.target.value })}
                   placeholder="09... (သို့) +66..."
-                  className="mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
+                  className="latin-nums mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
                 />
               </div>
               <div>
@@ -436,7 +436,7 @@ export default function RegisterPage() {
                   value={form.phoneSecondary}
                   onChange={(e) => setForm({ ...form, phoneSecondary: e.target.value })}
                   placeholder="ရွေးချယ်"
-                  className="mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
+                  className="latin-nums mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
                 />
               </div>
             </div>

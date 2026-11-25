@@ -167,7 +167,7 @@ export default function ExcelImport() {
                   <tr key={r.rowNumber} className="border-t border-stone-100">
                     <td className="p-2">{r.rowNumber}</td>
                     <td className="p-2">{r.fullName || "—"}</td>
-                    <td className="p-2">{r.phonePrimary || "—"}</td>
+                    <td className="p-2 latin-nums">{r.phonePrimary || "—"}</td>
                     <td className="p-2">
                       {r.status === "ok" && <span className="text-green-700">မှန်သည်</span>}
                       {r.status === "error" && <span className="text-red-700">မှားနေသည်</span>}
@@ -264,7 +264,7 @@ export default function ExcelImport() {
                   <tr key={p.alumniCode} className="border-t border-stone-100">
                     <td className="p-2">{p.alumniCode}</td>
                     <td className="p-2">{p.fullName}</td>
-                    <td className="p-2">{p.phoneMasked}</td>
+                    <td className="p-2 latin-nums">{p.phoneMasked}</td>
                     <td className="p-2">
                       {p.daysLeft !== null ? `${p.daysLeft} ရက်` : "—"}
                       {p.expiresAt ? ` (${new Date(p.expiresAt).toLocaleDateString("en-GB")})` : ""}
