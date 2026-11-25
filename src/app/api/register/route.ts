@@ -155,12 +155,17 @@ export async function POST(req: NextRequest) {
           telegramEnc: encryptField(body.telegram),
           emailEnc: encryptField(emailRaw),
           facebookEnc: encryptField(body.facebook),
-          showPhoneWeb: Boolean(body.showPhoneWeb),
-          showViberTgWeb: Boolean(body.showViberTgWeb),
-          showEmailFbWeb: Boolean(body.showEmailFbWeb),
-          showWardWeb: body.showWardWeb !== false,
+          // Part (င) visibility choices were removed from the form
+          // (admin decision 2026-11-25). Defaults are the old form
+          // defaults: phone / Viber / Email hidden on the web, ward
+          // shown on web and in print. The member can change all of
+          // these later on their Profile page.
+          showPhoneWeb: false,
+          showViberTgWeb: false,
+          showEmailFbWeb: false,
+          showWardWeb: true,
           showPhonePrint: true, // phone is always in the print book (admin decision 2026-11-25); a member can turn it off on their Profile page
-          showWardPrint: body.showWardPrint !== false,
+          showWardPrint: true,
           adminNote: body.adminNote ? normalizeMyanmarText(String(body.adminNote)) : null,
           referrerName: body.referrerName ? normalizeMyanmarText(String(body.referrerName)) : null,
           bestContactTime: body.bestContactTime

@@ -37,15 +37,7 @@ export default function RegisterPage() {
     email: "",
     facebook: "",
     password: "",
-    showPhoneWeb: false,
-    showViberTgWeb: false,
-    showEmailFbWeb: false,
-    showWardWeb: true,
-    showWardPrint: true,
     adminNote: "",
-    referrerName: "",
-    bestContactTime: "",
-    printExclusionNote: "",
   });
 
   const isDomestic = form.countryCode === "MM";
@@ -517,68 +509,6 @@ export default function RegisterPage() {
             </div>
           </section>
 
-          {/* Part E */}
-          <section className="space-y-3">
-            <h2 className="border-b border-stone-200 pb-2 text-xl font-bold text-amber-900">
-              အပိုင်း (င) — ဘာကို ဘယ်မှာ ပြမလဲ (ကိုယ်တိုင်ရွေးချယ်ရန်)
-            </h2>
-            <p className="text-sm text-stone-600">
-              မရွေးထားသော အချက်ကို Web ပေါ်တွင် မပြပါ — ဖုန်းမပြသော်လည်း အခြားသူများက ဆက်သွယ်ရန် တောင်းဆိုချက် (Contact Request) ပေးပို့နိုင်ပါသည်။
-            </p>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              <label className="flex items-center gap-3 rounded-xl border border-stone-200 p-3.5 text-sm font-medium">
-                <input
-                  type="checkbox"
-                  checked={form.showPhoneWeb}
-                  onChange={(e) => setForm({ ...form, showPhoneWeb: e.target.checked })}
-                  className="h-5 w-5 rounded accent-amber-800"
-                />
-                <span>Web တွင် ဖုန်းနံပါတ် ပြမည်</span>
-              </label>
-
-              <label className="flex items-center gap-3 rounded-xl border border-stone-200 p-3.5 text-sm font-medium">
-                <input
-                  type="checkbox"
-                  checked={form.showViberTgWeb}
-                  onChange={(e) => setForm({ ...form, showViberTgWeb: e.target.checked })}
-                  className="h-5 w-5 rounded accent-amber-800"
-                />
-                <span>Web တွင် Viber / Telegram ပြမည်</span>
-              </label>
-
-              <label className="flex items-center gap-3 rounded-xl border border-stone-200 p-3.5 text-sm font-medium">
-                <input
-                  type="checkbox"
-                  checked={form.showEmailFbWeb}
-                  onChange={(e) => setForm({ ...form, showEmailFbWeb: e.target.checked })}
-                  className="h-5 w-5 rounded accent-amber-800"
-                />
-                <span>Web တွင် Email / Facebook ပြမည်</span>
-              </label>
-
-              <label className="flex items-center gap-3 rounded-xl border border-stone-200 p-3.5 text-sm font-medium">
-                <input
-                  type="checkbox"
-                  checked={form.showWardWeb}
-                  onChange={(e) => setForm({ ...form, showWardWeb: e.target.checked })}
-                  className="h-5 w-5 rounded accent-amber-800"
-                />
-                <span>Web တွင် ရွာ / ရပ်ကွက် ပြမည်</span>
-              </label>
-
-              <label className="flex items-center gap-3 rounded-xl border border-stone-200 p-3.5 text-sm font-medium sm:col-span-2">
-                <input
-                  type="checkbox"
-                  checked={form.showWardPrint}
-                  onChange={(e) => setForm({ ...form, showWardPrint: e.target.checked })}
-                  className="h-5 w-5 rounded accent-amber-800"
-                />
-                <span>Print စာအုပ်တွင် ရွာ / ရပ်ကွက် ထည့်မည် (မခြစ်ပါက မြို့အဆင့်သာ ပါမည်)</span>
-              </label>
-            </div>
-          </section>
-
           {/* Part F */}
           <section className="space-y-4 rounded-2xl border border-stone-200 bg-stone-50 p-5">
             <div className="flex items-center gap-2 text-stone-900">
@@ -586,36 +516,9 @@ export default function RegisterPage() {
               <h2 className="text-lg font-bold">အပိုင်း (စ) — Admin သာ မြင်ရမည့် အချက်များ</h2>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="block text-sm font-semibold text-stone-800">
-                  မည်သူ့မှတစ်ဆင့် သိရှိခဲ့သနည်း
-                </label>
-                <input
-                  type="text"
-                  value={form.referrerName}
-                  onChange={(e) => setForm({ ...form, referrerName: e.target.value })}
-                  placeholder="အတည်ပြုရာတွင် အထောက်အကူပြုရန်"
-                  className="mt-1 w-full rounded-xl border border-stone-300 bg-white px-3 py-2.5 text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-stone-800">
-                  အတည်ပြုရန် ဖုန်းဆက်နိုင်သော အချိန်
-                </label>
-                <input
-                  type="text"
-                  value={form.bestContactTime}
-                  onChange={(e) => setForm({ ...form, bestContactTime: e.target.value })}
-                  placeholder="ဥပမာ - ညနေ ၆ နာရီ နောက်ပိုင်း"
-                  className="mt-1 w-full rounded-xl border border-stone-300 bg-white px-3 py-2.5 text-sm"
-                />
-              </div>
-            </div>
-
             <div>
               <label className="block text-sm font-semibold text-stone-800">
-                Admin ထံ သိစေလိုသော အကြံပေးချက် / Print တွင် မထည့်စေလိုသော အချက်
+                Admin ထံ သိစေလိုသော အကြံပေးချက်
               </label>
               <textarea
                 rows={2}
