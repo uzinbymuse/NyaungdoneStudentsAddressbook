@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BookOpen, CheckCircle2, Clock, Edit3, KeyRound, UserCheck } from "lucide-react";
+import { BookOpen, CheckCircle2, Clock, Edit3, KeyRound } from "lucide-react";
 
 interface ProfileData {
   id: string;
@@ -87,18 +87,6 @@ export default function ProfilePage() {
   useEffect(() => {
     loadAll();
   }, []);
-
-  async function confirmAccuracy() {
-    const res = await fetch("/api/profile", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "CONFIRM_ACCURACY" }),
-    });
-    if (res.ok) {
-      setNotice("အချက်အလက်များ မှန်ကန်သေးကြောင်း အတည်ပြုမှတ်တမ်းတင်ပြီးပါပြီ။");
-      loadAll();
-    }
-  }
 
   async function submitCorrection(e: React.FormEvent) {
     e.preventDefault();
@@ -230,16 +218,6 @@ export default function ProfilePage() {
               ? new Date(profile.lastConfirmedAt).toLocaleDateString("en-GB")
               : "မရှိသေးပါ"}
           </p>
-        </div>
-
-        <div className="mt-5 border-t border-stone-100 pt-4">
-          <button
-            onClick={confirmAccuracy}
-            className="inline-flex items-center gap-2 rounded-xl bg-stone-900 px-4 py-2 text-sm font-semibold text-white hover:bg-stone-800"
-          >
-            <UserCheck className="h-4 w-4" />
-            <span>ကျွန်ုပ်၏ အချက်အလက်များ မှန်ကန်သေးကြောင်း အတည်ပြုမည်</span>
-          </button>
         </div>
       </div>
 
