@@ -118,6 +118,7 @@ interface CorrectionItem {
 interface PrintEntry {
   alumniCode: string;
   fullName: string;
+  birthplace: string;
   degreeName?: string | null;
   batchYearDisplay: string;
   dormitory: string;

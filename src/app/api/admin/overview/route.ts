@@ -67,6 +67,7 @@ export async function GET() {
     monkOrLay: p.monkOrLay,
     fullName: p.fullName,
     formerName: p.formerName,
+    birthplace: p.birthplace,
     degreeName: p.degreeName,
     batchYearDisplay: p.batchYearDisplay,
     batchYearMm: p.batchYearMm,

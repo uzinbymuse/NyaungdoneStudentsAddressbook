@@ -20,6 +20,7 @@ async function buildPrintEligibleList() {
       alumniCode: p.alumniCode,
       fullName: p.fullName,
       formerName: p.formerName,
+      birthplace: p.birthplace,
       degreeName: p.degreeName,
       batchYearDisplay: p.batchYearDisplay,
       dormitory: p.dormitory,
