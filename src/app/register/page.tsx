@@ -109,7 +109,7 @@ export default function RegisterPage() {
         </p>
 
         <p className="mt-2 text-sm font-semibold text-red-700">
-          * ပြထားသော အကွက်ကို မဖြစ်မနေ ဖြည့်ပေးပါဘုရား
+          (*)သင်္ကေတ ပြထားသော အကွက်ကို မဖြစ်မနေ ဖြည့်ပေးပါဘုရား
         </p>
 
         <div className="mt-4 flex items-start gap-3 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
