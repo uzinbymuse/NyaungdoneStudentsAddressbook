@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { COUNTRIES, MYANMAR_REGIONS } from "@/lib/mimu-locations";
 import { fetchDormitoryNames } from "@/lib/dormitories";
+import { dedupeAddressParts } from "@/lib/myanmar-utils";
 import { Lock, Mail, MapPin, Phone, Search, Send, UserCheck, AlertCircle } from "lucide-react";
 
 interface AlumniItem {
@@ -250,11 +251,13 @@ export default function DirectoryPage() {
                   <p className="flex items-start gap-1.5">
                     <MapPin className="mt-1 h-4 w-4 shrink-0 text-stone-500" />
                     <span>
-                      {item.countryName}
-                      {item.region ? ` · ${item.region}` : ""}
-                      {item.township ? ` · ${item.township}` : ""}
-                      {item.city ? ` · ${item.city}` : ""}
-                      {item.wardOrVillage ? ` · ${item.wardOrVillage}` : ""}
+                      {dedupeAddressParts([
+                        item.countryName,
+                        item.region,
+                        item.township,
+                        item.city,
+                        item.wardOrVillage,
+                      ]).join(" · ")}
                     </span>
                   </p>
 

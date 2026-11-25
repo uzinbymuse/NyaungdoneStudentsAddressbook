@@ -143,3 +143,25 @@ export function maskPhone(phone: string): string {
   const end = clean.slice(-3);
   return `${start}***${end}`;
 }
+
+/**
+ * Build a display address from parts, dropping empty parts and exact
+ * duplicates. Needed because township and city can hold the same value
+ * (the register form now asks for a single "မြို့နယ်/မြို့" field, and
+ * older records were entered with both) — without this, an address
+ * renders e.g. "ဗဟန်း၊ ဗဟန်း" twice.
+ */
+export function dedupeAddressParts(
+  parts: Array<string | null | undefined>
+): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const p of parts) {
+    const v = (p || "").trim();
+    if (!v) continue;
+    if (seen.has(v)) continue;
+    seen.add(v);
+    out.push(v);
+  }
+  return out;
+}

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { BookOpen, CheckCircle2, Clock, Edit3, KeyRound } from "lucide-react";
+import { dedupeAddressParts } from "@/lib/myanmar-utils";
 
 interface ProfileData {
   id: string;
@@ -237,11 +238,13 @@ export default function ProfilePage() {
               {profile.dormitory} · {profile.currentRoleOrMonastery}
             </p>
             <p className="mt-1">
-              {profile.countryName}
-              {profile.region ? `၊ ${profile.region}` : ""}
-              {profile.township ? `၊ ${profile.township}` : ""}
-              {profile.city ? `၊ ${profile.city}` : ""}
-              {profile.showWardPrint && profile.wardOrVillage ? `၊ ${profile.wardOrVillage}` : ""}
+              {dedupeAddressParts([
+                profile.countryName,
+                profile.region,
+                profile.township,
+                profile.city,
+                profile.showWardPrint ? profile.wardOrVillage : null,
+              ]).join("၊ ")}
             </p>
             <p className="mt-1 text-stone-600">
               ဖုန်း: {profile.showPhonePrint ? profile.phonePrimary : "(စာအုပ်တွင် မထည့်ပါ)"}

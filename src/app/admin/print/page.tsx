@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { decryptField } from "@/lib/crypto";
+import { dedupeAddressParts } from "@/lib/myanmar-utils";
 import { PrintTriggerButton } from "@/components/PrintTriggerButton";
 
 export const instant = false;
@@ -67,10 +68,12 @@ export default async function AdminPrintBookPage() {
                 {p.dormitory} · {p.currentRoleOrMonastery}
               </div>
               <div className="text-stone-700">
-                {p.region || ""}
-                {p.township ? `၊ ${p.township}` : ""}
-                {p.city ? `၊ ${p.city}` : ""}
-                {p.showWardPrint && p.wardOrVillage ? `၊ ${p.wardOrVillage}` : ""}
+                {dedupeAddressParts([
+                  p.region,
+                  p.township,
+                  p.city,
+                  p.showWardPrint ? p.wardOrVillage : null,
+                ]).join("၊ ")}
               </div>
               {p.showPhonePrint && (
                 <div className="text-stone-700">ဖုန်း: {decryptField(p.phonePrimaryEnc)}</div>
@@ -96,10 +99,12 @@ export default async function AdminPrintBookPage() {
                 {p.dormitory} · {p.currentRoleOrMonastery}
               </div>
               <div className="text-stone-700">
-                {p.countryName}
-                {p.region ? `၊ ${p.region}` : ""}
-                {p.city ? `၊ ${p.city}` : ""}
-                {p.showWardPrint && p.wardOrVillage ? `၊ ${p.wardOrVillage}` : ""}
+                {dedupeAddressParts([
+                  p.countryName,
+                  p.region,
+                  p.city,
+                  p.showWardPrint ? p.wardOrVillage : null,
+                ]).join("၊ ")}
               </div>
               {p.showPhonePrint && (
                 <div className="text-stone-700">ဖုန်း: {decryptField(p.phonePrimaryEnc)}</div>
