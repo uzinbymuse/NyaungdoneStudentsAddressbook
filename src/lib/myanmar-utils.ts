@@ -21,8 +21,13 @@ export function toWesternDigits(input: string): string {
  */
 export function isLikelyZawgyi(text: string): boolean {
   if (!text) return false;
-  // Zawgyi-specific codepoints: \u105A (ဉ), \u1060-\u1097, or leading \u1031 before consonant
-  const zgSpecific = /[\u105A\u1060-\u1097\u1033\u1034\u103A\u103C\u103D\u107D-\u108A]/;
+  // Zawgyi-ONLY codepoints: \u105A (ဉ), \u1060-\u1097, \u1033, \u1034,
+  // \u107D-\u108A, or leading \u1031 before a consonant.
+  // NOTE: \u103A (asat "်"), \u103C and \u103D are VALID Unicode too
+  // (they appear in almost every correct Unicode word with "်"), so
+  // they must NOT be treated as Zawgyi evidence — the old check did,
+  // and correct Unicode text was then "converted" into garbage.
+  const zgSpecific = /[\u105A\u1060-\u1097\u1033\u1034\u107D-\u108A]/;
   // In Unicode, \u1031 comes AFTER the consonant; in Zawgyi, \u1031 comes BEFORE [\u1000-\u1021]
   const zgLeadingE = /\u1031[\u1000-\u1021]/;
   return zgSpecific.test(text) || zgLeadingE.test(text);
@@ -40,46 +45,52 @@ export function normalizeMyanmarText(input: string): string {
     return s.replace(/\s+/g, " ");
   }
 
-  // Common Zawgyi -> Unicode mappings
-  const replacements: Array<[RegExp, string]> = [
-    [/\u106A/g, "\u1009"],
-    [/\u106B/g, "\u100A"],
-    [/\u1090/g, "\u101B"],
-    [/\u108F/g, "\u1014"],
-    [/\u1091/g, "\u100F"],
-    [/\u1092/g, "\u100B"],
-    [/\u1097/g, "\u100C"],
-    [/\u106E/g, "\u100D"],
-    [/\u106F/g, "\u100E"],
-    [/\u1086/g, "\u103F"],
-    [/\u1064/g, "\u1004\u103A\u1039"],
-    [/\u103A/g, "\u103B"],
-    [/\u103B/g, "\u103C"],
-    [/\u107D/g, "\u103B"],
-    [/\u107E/g, "\u103C"],
-    [/\u107F/g, "\u103C"],
-    [/\u1080/g, "\u103C"],
-    [/\u1081/g, "\u103C"],
-    [/\u1082/g, "\u103C"],
-    [/\u1083/g, "\u103C"],
-    [/\u1084/g, "\u103C"],
-    [/\u103C/g, "\u103D"],
-    [/\u103D/g, "\u103E"],
-    [/\u108A/g, "\u103D\u103E"],
-    [/\u1033/g, "\u102F"],
-    [/\u1034/g, "\u1030"],
-    [/\u1094/g, "\u1037"],
-    [/\u1095/g, "\u1037"],
-    [/\u1039/g, "\u103A"],
-    // Reorder leading e-vowel (\u1031) after consonant (+ optional medials)
-    [/\u1031([\u1000-\u1021][\u103B-\u103E]*)/g, "$1\u1031"],
-  ];
+  // Single-pass Zawgyi -> Unicode mapping: each input character is
+  // translated at most once, so a replacement output is never re-matched
+  // by a later rule. The old sequential .replace() chain did exactly
+  // that — e.g. \u103A became \u103B, then \u103C, then \u103D, then
+  // \u103E — turning correct text like "မဏ္ဍိုင်" into "မဏ်ဍိုငှ".
+  const singleCharMap = new Map<string, string>([
+    ["\u106A", "\u1009"],
+    ["\u106B", "\u100A"],
+    ["\u1090", "\u101B"],
+    ["\u108F", "\u1014"],
+    ["\u1091", "\u100F"],
+    ["\u1092", "\u100B"],
+    ["\u1097", "\u100C"],
+    ["\u106E", "\u100D"],
+    ["\u106F", "\u100E"],
+    ["\u1086", "\u103F"],
+    ["\u1064", "\u1004\u103A\u1039"],
+    ["\u103A", "\u103B"],
+    ["\u103B", "\u103C"],
+    ["\u107D", "\u103B"],
+    ["\u107E", "\u103C"],
+    ["\u107F", "\u103C"],
+    ["\u1080", "\u103C"],
+    ["\u1081", "\u103C"],
+    ["\u1082", "\u103C"],
+    ["\u1083", "\u103C"],
+    ["\u1084", "\u103C"],
+    ["\u103C", "\u103D"],
+    ["\u103D", "\u103E"],
+    ["\u108A", "\u103D\u103E"],
+    ["\u1033", "\u102F"],
+    ["\u1034", "\u1030"],
+    ["\u1094", "\u1037"],
+    ["\u1095", "\u1037"],
+    ["\u1039", "\u103A"],
+  ]);
 
-  for (const [pattern, replacement] of replacements) {
-    s = s.replace(pattern, replacement);
+  let out = "";
+  for (const ch of s) {
+    out += singleCharMap.get(ch) ?? ch;
   }
 
-  return s.replace(/\s+/g, " ").trim();
+  // Reorder leading e-vowel (\u1031) after consonant (+ optional medials)
+  out = out.replace(/\u1031([\u1000-\u1021][\u103B-\u103E]*)/g, "$1\u1031");
+
+  return out.replace(/\s+/g, " ").trim();
 }
 
 /**
