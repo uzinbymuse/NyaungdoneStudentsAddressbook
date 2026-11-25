@@ -108,6 +108,10 @@ export default function RegisterPage() {
           ပါဠိတက္ကသိုလ် ညောင်တုန်း ကျောင်းသားဟောင်းများ အချင်းချင်း ဆက်သွယ်နိုင်ရန်နှင့် လိပ်စာစာအုပ် ထုတ်ဝေနိုင်ရန် ဖြည့်သွင်းပေးပါ။
         </p>
 
+        <p className="mt-2 text-sm font-semibold text-red-700">
+          * ပြထားသော အကွက်ကို မဖြစ်မနေ ဖြည့်ပေးပါဘုရား
+        </p>
+
         <div className="mt-4 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
           <div>
