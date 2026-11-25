@@ -147,8 +147,6 @@ export default function RegisterPage() {
               >
                 <option value="MONK">ရဟန်း / သာမဏေ</option>
                 <option value="LAY">လူဝတ်လဲပြီး (လူပုဂ္ဂိုလ်)</option>
-                <option value="NUN">သီလရှင်</option>
-                <option value="OTHER">အခြား</option>
               </select>
             </div>
 

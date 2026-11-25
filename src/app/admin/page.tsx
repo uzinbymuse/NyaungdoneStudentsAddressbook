@@ -967,8 +967,6 @@ export default function AdminDashboardPage() {
                   >
                     <option value="MONK">ရဟန်း</option>
                     <option value="LAY">လူ</option>
-                    <option value="NUN">သီလရှင်</option>
-                    <option value="OTHER">အခြား</option>
                   </select>
                 </div>
                 <div>
