@@ -299,7 +299,7 @@ export async function POST(req: NextRequest) {
       countryName,
       isDomestic: countryCode === "MM",
       region: normOrNull(f.region),
-      township: normOrNull(f.township),
+      township: countryCode === "MM" ? normOrNull(f.township) : null,
       city,
       wardOrVillage: normOrNull(f.wardOrVillage),
       phonePrimaryEnc: encryptField(phonePrimary),

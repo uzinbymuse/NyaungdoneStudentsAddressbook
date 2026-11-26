@@ -40,9 +40,14 @@ export async function POST(req: NextRequest) {
     const phonePrimary = toWesternDigits(String(body.phonePrimary || "")).trim();
     const city = normalizeMyanmarText(String(body.city || ""));
     const password = String(body.password || "");
+    const isDomestic = String(body.countryCode || "MM").trim() === "MM";
     // Domestic users pick a township (မြို့နယ်) and no longer enter a
     // separate city (မြို့) — the township is stored as the city.
-    const township = body.township ? normalizeMyanmarText(String(body.township)) : null;
+    // Foreign users have no township: the form's domestic township
+    // dropdown is hidden for them, so any township value in the request
+    // is a stale default (e.g. ကမာရွတ်) and must not be stored.
+    const township =
+      isDomestic && body.township ? normalizeMyanmarText(String(body.township)) : null;
 
     if (
       !fullName ||
@@ -51,7 +56,7 @@ export async function POST(req: NextRequest) {
       !dormitory ||
       !currentRoleOrMonastery ||
       !phonePrimary ||
-      !(city || township) ||
+      !((isDomestic && township) || (!isDomestic && city)) ||
       password.length < 6
     ) {
       return NextResponse.json(
@@ -66,7 +71,6 @@ export async function POST(req: NextRequest) {
       countryCode === "OTHER"
         ? normalizeMyanmarText(String(body.countryOther || "အခြား"))
         : countryObj?.nameMm || "မြန်မာ";
-    const isDomestic = countryCode === "MM";
 
     const region = body.region ? normalizeMyanmarText(String(body.region)) : null;
     const wardOrVillage = body.wardOrVillage
@@ -153,7 +157,7 @@ export async function POST(req: NextRequest) {
           isDomestic,
           region,
           township,
-          city: city || township || "",
+          city: isDomestic ? township || "" : city,
           wardOrVillage,
           phonePrimaryEnc: encryptField(phonePrimary)!,
           phoneLookupHash,

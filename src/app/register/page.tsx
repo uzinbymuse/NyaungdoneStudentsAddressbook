@@ -71,6 +71,30 @@ export default function RegisterPage() {
     }));
   }
 
+  function handleCountryChange(code: string) {
+    if (code === "MM") {
+      // Back to domestic: restore the Yangon defaults and drop any
+      // foreign city typed earlier (domestic city comes from the township).
+      const first = MYANMAR_REGIONS["ရန်ကုန်တိုင်းဒေသကြီး"]?.[0] || "";
+      setForm((prev) => ({
+        ...prev,
+        countryCode: code,
+        region: "ရန်ကုန်တိုင်းဒေသကြီး",
+        township: first,
+        city: "",
+      }));
+    } else {
+      // Foreign: the domestic region/township auto-selects do not apply —
+      // clear them so the stale Yangon defaults (ကမာရွတ်) never leak in.
+      setForm((prev) => ({
+        ...prev,
+        countryCode: code,
+        region: "",
+        township: "",
+      }));
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
@@ -296,7 +320,7 @@ export default function RegisterPage() {
               </label>
               <select
                 value={form.countryCode}
-                onChange={(e) => setForm({ ...form, countryCode: e.target.value })}
+                onChange={(e) => handleCountryChange(e.target.value)}
                 className="mt-1.5 w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-base"
               >
                 {COUNTRIES.map((c) => (
