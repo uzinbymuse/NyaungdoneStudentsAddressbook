@@ -13,6 +13,7 @@ import {
   Pencil,
   Printer,
   ShieldAlert,
+  Trash2,
   Upload,
   X,
 } from "lucide-react";
@@ -285,6 +286,29 @@ export default function AdminDashboardPage() {
         setNotice("ဆောင်ရွက်ချက် အောင်မြင်ပါသည်။");
       }
       loadDashboard();
+    }
+  }
+
+  // Permanent delete (profile + login account). One confirm dialog:
+  // the row stays put on failure and the error is shown, so a failed
+  // delete never looks like it worked.
+  async function handleDeleteAlumni(item: AdminAlumni) {
+    const ok = window.confirm(
+      `“[${item.alumniCode}] ${item.fullName}” ကို လုံးဝ ဖျက်မည်လား။ Profile နှင့် Login အကောင့် နှစ်ခုလုံး ပျက်သွားမည် — ပြန်ယူ၍ မရပါ။ ဖျက်ပြီးနောက် ထိုဖုန်းနံပါတ်ဖြင့် အသစ်ပြန်စာရင်းသွင်းနိုင်ပါသည်။`
+    );
+    if (!ok) return;
+    setNotice("");
+    const res = await fetch("/api/admin/alumni", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "DELETE_ALUMNI", alumniId: item.id }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setNotice(`[${item.alumniCode}] ${item.fullName} ကို ဖျက်ပြီးပါပြီ။`);
+      loadDashboard();
+    } else {
+      window.alert(data.error || "ဖျက်ရာတွင် အမှားအယွင်း ဖြစ်ပွားပါသည်။");
     }
   }
 
@@ -682,6 +706,12 @@ export default function AdminDashboardPage() {
                         <KeyRound className="h-3.5 w-3.5" /> Magic Link
                       </button>
                     )}
+                    <button
+                      onClick={() => handleDeleteAlumni(item)}
+                      className="inline-flex items-center gap-1 rounded-lg border border-red-300 px-3 py-1.5 text-xs font-bold text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" /> ဖျက်မည်
+                    </button>
                   </div>
                 </div>
               </div>

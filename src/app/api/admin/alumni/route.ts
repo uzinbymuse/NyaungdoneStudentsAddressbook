@@ -52,6 +52,46 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true });
   }
 
+  if (action === "DELETE_ALUMNI") {
+    // Permanent delete: the profile AND its login account go together,
+    // so the same phone/email can register fresh afterwards. Consents,
+    // correction requests and contact requests cascade via the schema;
+    // frozen print publications are JSON snapshots and keep their data.
+    const alumniId = String(body.alumniId || "");
+    const profile = await prisma.alumniProfile.findUnique({
+      where: { id: alumniId },
+      include: { user: { select: { id: true, role: true } } },
+    });
+    if (!profile) {
+      return NextResponse.json({ error: "မှတ်တမ်း မတွေ့ပါ။" }, { status: 404 });
+    }
+    if (profile.user?.role === "ADMIN" || profile.userId === admin.userId) {
+      return NextResponse.json(
+        { error: "Admin အကောင့်ကို ဖျက်၍ မရပါ။" },
+        { status: 400 }
+      );
+    }
+
+    const { alumniCode, fullName } = profile;
+    const userId = profile.userId;
+    await prisma.$transaction(async (tx) => {
+      await tx.alumniProfile.delete({ where: { id: alumniId } });
+      if (userId) {
+        await tx.user.delete({ where: { id: userId } });
+      }
+    });
+
+    await logAudit({
+      actorId: admin.userId,
+      action: "ALUMNI_DELETED",
+      targetType: "AlumniProfile",
+      targetId: alumniId,
+      details: { alumniCode, fullName },
+    });
+
+    return NextResponse.json({ ok: true, alumniCode });
+  }
+
   if (action === "GENERATE_MAGIC_LINK") {
     const userId = String(body.userId || "");
     if (!userId) {
