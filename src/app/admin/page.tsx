@@ -53,9 +53,7 @@ interface AdminAlumni {
   telegram?: string | null;
   email?: string | null;
   facebook?: string | null;
-  showPhoneWeb?: boolean;
-  showViberTgWeb?: boolean;
-  showEmailFbWeb?: boolean;
+  hideContactsWeb?: boolean;
   showWardWeb?: boolean;
   showPhonePrint: boolean;
   showWardPrint?: boolean;
@@ -101,9 +99,7 @@ interface EditFormState {
   telegram: string;
   email: string;
   facebook: string;
-  showPhoneWeb: boolean;
-  showViberTgWeb: boolean;
-  showEmailFbWeb: boolean;
+  hideContactsWeb: boolean;
   showWardWeb: boolean;
   showPhonePrint: boolean;
   showWardPrint: boolean;
@@ -366,9 +362,7 @@ export default function AdminDashboardPage() {
       telegram: item.telegram || "",
       email: item.email || "",
       facebook: item.facebook || "",
-      showPhoneWeb: Boolean(item.showPhoneWeb),
-      showViberTgWeb: Boolean(item.showViberTgWeb),
-      showEmailFbWeb: Boolean(item.showEmailFbWeb),
+      hideContactsWeb: Boolean(item.hideContactsWeb),
       showWardWeb: item.showWardWeb !== false,
       showPhonePrint: Boolean(item.showPhonePrint),
       showWardPrint: item.showWardPrint !== false,
@@ -1402,9 +1396,7 @@ export default function AdminDashboardPage() {
                 <div className="mt-2 grid gap-2 sm:grid-cols-2">
                   {(
                     [
-                      ["showPhoneWeb", "ဖုန်း — Web မှာ ပြမည်"],
-                      ["showViberTgWeb", "Viber / Telegram — Web မှာ ပြမည်"],
-                      ["showEmailFbWeb", "Email / Facebook — Web မှာ ပြမည်"],
+                      ["hideContactsWeb", "ဆက်သွယ်ရန်အချက်အလက်များကို Web မှာ ဖုံးထားမည်"],
                       ["showWardWeb", "ရွာ / ရပ်ကွက် — Web မှာ ပြမည်"],
                       ["showPhonePrint", "ဖုန်း — Print စာအုပ်မှာ ပြမည်"],
                       ["showWardPrint", "ရွာ / ရပ်ကွက် — Print စာအုပ်မှာ ပြမည်"],

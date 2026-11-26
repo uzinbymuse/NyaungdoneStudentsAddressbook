@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { COUNTRIES, MYANMAR_REGIONS } from "@/lib/mimu-locations";
 import { fetchDormitoryNames } from "@/lib/dormitories";
 import { dedupeAddressParts } from "@/lib/myanmar-utils";
-import { Lock, Mail, MapPin, Phone, Search, Send, UserCheck, AlertCircle } from "lucide-react";
+import { Mail, MapPin, Phone, Search, UserCheck, AlertCircle } from "lucide-react";
 
 interface AlumniItem {
   id: string;
@@ -28,7 +28,6 @@ interface AlumniItem {
   city: string;
   wardOrVillage?: string | null;
   phoneDisplay?: string | null;
-  phoneRevealed: boolean;
   viber?: string | null;
   telegram?: string | null;
   email?: string | null;
@@ -44,10 +43,6 @@ export default function DirectoryPage() {
   const [dormitory, setDormitory] = useState("");
   const [country, setCountry] = useState("");
   const [region, setRegion] = useState("");
-
-  const [requestTarget, setRequestTarget] = useState<AlumniItem | null>(null);
-  const [requestMessage, setRequestMessage] = useState("");
-  const [requestStatus, setRequestStatus] = useState("");
 
   // Dormitory filter options come from the database (admin-managed).
   // An empty list is fine — the filter then offers only "အားလုံး".
@@ -86,32 +81,6 @@ export default function DirectoryPage() {
     fetchDirectory();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  async function handleSendRequest(e: React.FormEvent) {
-    e.preventDefault();
-    if (!requestTarget) return;
-    setRequestStatus("");
-
-    const res = await fetch("/api/contact-requests", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        receiverAlumniId: requestTarget.id,
-        message: requestMessage,
-      }),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      setRequestStatus(data.error || "ပေးပို့မှု မအောင်မြင်ပါ။");
-    } else {
-      setRequestStatus("ဆက်သွယ်ရန် တောင်းဆိုချက် ပေးပို့ပြီးပါပြီ။ ပိုင်ရှင် လက်ခံပါက ဖုန်း/ဆက်သွယ်ရန် ပေါ်လာပါမည်။");
-      setRequestMessage("");
-      setTimeout(() => {
-        setRequestTarget(null);
-        setRequestStatus("");
-      }, 2000);
-    }
-  }
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -276,11 +245,6 @@ export default function DirectoryPage() {
                     <p className="flex items-center gap-1.5">
                       <Phone className="h-4 w-4 shrink-0 text-stone-500" />
                       <span className="latin-nums">{item.phoneDisplay}</span>
-                      {!item.phoneRevealed && (
-                        <span className="inline-flex items-center gap-1 rounded bg-stone-100 px-2 py-0.5 text-xs text-stone-500">
-                          <Lock className="h-3 w-3" /> ဖုံးကွယ်ထားသည်
-                        </span>
-                      )}
                     </p>
                   )}
 
@@ -305,16 +269,6 @@ export default function DirectoryPage() {
                   )}
                 </div>
               </div>
-
-              <div className="mt-5 border-t border-stone-100 pt-4">
-                <button
-                  onClick={() => setRequestTarget(item)}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-amber-700 px-4 py-2 text-sm font-semibold text-amber-900 hover:bg-amber-50"
-                >
-                  <Send className="h-4 w-4" />
-                  <span>ဆက်သွယ်ရန် တောင်းဆိုမည်</span>
-                </button>
-              </div>
             </div>
           ))}
         </div>
@@ -323,50 +277,6 @@ export default function DirectoryPage() {
       {!loading && !error && results.length === 0 && (
         <div className="mt-8 rounded-2xl border border-stone-200 bg-white p-8 text-center text-stone-500">
           ရှာဖွေမှုနှင့် ကိုက်ညီသော ဗဟန်း-ညောင်တုန်းနွယ်ဖွား မတွေ့ရှိပါ။
-        </div>
-      )}
-
-      {/* Contact Request Modal */}
-      {requestTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="text-lg font-bold text-stone-900">
-              {requestTarget.fullName} ထံ ဆက်သွယ်ရန် တောင်းဆိုခြင်း
-            </h3>
-            <p className="mt-1 text-xs text-stone-600">
-              ပိုင်ရှင်က လက်ခံမှသာ ဖုန်းနံပါတ်နှင့် ဆက်သွယ်ရန် အချက်အလက်များကို မျှဝေပေးပါမည်။
-            </p>
-            {requestStatus && (
-              <div className="mt-3 rounded-xl bg-amber-50 p-3 text-xs font-semibold text-amber-900">
-                {requestStatus}
-              </div>
-            )}
-            <form onSubmit={handleSendRequest} className="mt-4 space-y-4">
-              <textarea
-                rows={3}
-                required
-                value={requestMessage}
-                onChange={(e) => setRequestMessage(e.target.value)}
-                placeholder="မိမိအမည်၊ ကျောင်းဆောင်နှင့် ဆက်သွယ်လိုသည့် အကြောင်းအရာကို ရေးပါ..."
-                className="w-full rounded-xl border border-stone-300 p-3 text-sm"
-              />
-              <div className="flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setRequestTarget(null)}
-                  className="rounded-xl border border-stone-300 px-4 py-2 text-sm font-medium"
-                >
-                  ပိတ်မည်
-                </button>
-                <button
-                  type="submit"
-                  className="rounded-xl bg-amber-800 px-4 py-2 text-sm font-bold text-white hover:bg-amber-900"
-                >
-                  တောင်းဆိုချက် ပို့မည်
-                </button>
-              </div>
-            </form>
-          </div>
         </div>
       )}
     </div>

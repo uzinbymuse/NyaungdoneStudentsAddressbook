@@ -100,6 +100,7 @@ export interface BackupProfile {
   showWardWeb: boolean;
   showPhonePrint: boolean;
   showWardPrint: boolean;
+  hideContactsWeb: boolean;
   adminNote: string | null;
   referrerName: string | null;
   bestContactTime: string | null;
@@ -230,6 +231,14 @@ function optNum(row: Record<string, unknown>, field: string, where: string): num
 
 function reqBool(row: Record<string, unknown>, field: string, where: string): boolean {
   const v = row[field];
+  if (typeof v !== "boolean") fail(`${where}: ${field} true/false ဖြစ်ရမည်။`);
+  return v;
+}
+
+// Optional boolean: old files may not have the field at all.
+function optBool(row: Record<string, unknown>, field: string, where: string): boolean {
+  const v = row[field];
+  if (v === null || v === undefined) return false;
   if (typeof v !== "boolean") fail(`${where}: ${field} true/false ဖြစ်ရမည်။`);
   return v;
 }
@@ -377,6 +386,7 @@ export function validateBackupData(value: unknown): { data: BackupData; issues: 
       showWardWeb: reqBool(row, "showWardWeb", where),
       showPhonePrint: reqBool(row, "showPhonePrint", where),
       showWardPrint: reqBool(row, "showWardPrint", where),
+      hideContactsWeb: optBool(row, "hideContactsWeb", where),
       adminNote: optStr(row, "adminNote", where),
       referrerName: optStr(row, "referrerName", where),
       bestContactTime: optStr(row, "bestContactTime", where),

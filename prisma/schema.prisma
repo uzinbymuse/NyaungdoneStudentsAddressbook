@@ -131,6 +131,12 @@ model AlumniProfile {
   showWardWeb            Boolean       @default(true)
   showPhonePrint         Boolean       @default(false)
   showWardPrint          Boolean       @default(true)
+  // 2026-11-26: web contacts are shown to every logged-in member by
+  // default (no more contact requests). The admin can hide ONE person's
+  // contact details with this flag (edit modal checkbox). The show*Web
+  // flags above are no longer read by the directory — kept only so old
+  // rows stay valid.
+  hideContactsWeb        Boolean       @default(false)
 
   // Admin-Only Fields
   adminNote              String?

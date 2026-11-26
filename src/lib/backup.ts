@@ -1,5 +1,6 @@
 import { prisma } from "./prisma";
 import type { Prisma } from "@prisma/client";
+import { getHiddenContactIds } from "./hidden-contacts";
 import { decryptField, encryptField } from "./crypto";
 import { hashPassword } from "./auth";
 import { TEMP_PIN_VALIDITY_DAYS } from "./excel-import";
@@ -31,15 +32,19 @@ export async function buildBackupData(
   db: Db,
   opts: { includeSecrets: boolean }
 ): Promise<BackupData> {
-  const [dormitories, users, profiles, consents, correctionRequests, contactRequests, publications] =
+  const [dormitories, users, profiles, consents, correctionRequests, contactRequests, publications, hiddenIds] =
     await Promise.all([
       db.dormitory.findMany({ orderBy: { createdAt: "asc" } }),
       db.user.findMany({ orderBy: { createdAt: "asc" } }),
-      db.alumniProfile.findMany({ orderBy: { createdAt: "asc" } }),
+      // `omit` keeps the export working before `npx prisma db push`
+      // adds the hideContactsWeb column; the helper returns an empty
+      // set in that window.
+      db.alumniProfile.findMany({ orderBy: { createdAt: "asc" }, omit: { hideContactsWeb: true } }),
       db.consent.findMany({ orderBy: { recordedAt: "asc" } }),
       db.correctionRequest.findMany({ orderBy: { createdAt: "asc" } }),
       db.contactRequest.findMany({ orderBy: { createdAt: "asc" } }),
       db.publication.findMany({ orderBy: { createdAt: "asc" } }),
+      getHiddenContactIds(db),
     ]);
 
   const data: BackupData = {
@@ -122,6 +127,7 @@ export async function buildBackupData(
       showWardWeb: p.showWardWeb,
       showPhonePrint: p.showPhonePrint,
       showWardPrint: p.showWardPrint,
+      hideContactsWeb: hiddenIds.has(p.id),
       adminNote: p.adminNote,
       referrerName: p.referrerName,
       bestContactTime: p.bestContactTime,
@@ -313,6 +319,7 @@ export async function applyRestore(
           showWardWeb: p.showWardWeb,
           showPhonePrint: p.showPhonePrint,
           showWardPrint: p.showWardPrint,
+          hideContactsWeb: p.hideContactsWeb,
           adminNote: p.adminNote,
           referrerName: p.referrerName,
           bestContactTime: p.bestContactTime,

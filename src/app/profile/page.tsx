@@ -35,24 +35,8 @@ interface ProfileData {
   correctionRequests: Array<{ id: string; status: string; createdAt: string; reason?: string | null }>;
 }
 
-interface ContactReqItem {
-  id: string;
-  message: string;
-  status: string;
-  sender?: {
-    profile?: {
-      alumniCode: string;
-      fullName: string;
-      batchYearDisplay: string;
-      city: string;
-      countryName: string;
-    } | null;
-  };
-}
-
 export default function ProfilePage() {
   const [profile, setProfile] = useState<ProfileData | null>(null);
-  const [incomingReqs, setIncomingReqs] = useState<ContactReqItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState("");
 
@@ -73,17 +57,10 @@ export default function ProfilePage() {
   async function loadAll() {
     setLoading(true);
     try {
-      const [pRes, cRes] = await Promise.all([
-        fetch("/api/profile"),
-        fetch("/api/contact-requests"),
-      ]);
+      const pRes = await fetch("/api/profile");
       if (pRes.ok) {
         const pData = await pRes.json();
         setProfile(pData.profile);
-      }
-      if (cRes.ok) {
-        const cData = await cRes.json();
-        setIncomingReqs(cData.incoming || []);
       }
     } finally {
       setLoading(false);
@@ -160,15 +137,6 @@ export default function ProfilePage() {
     } finally {
       setPwSaving(false);
     }
-  }
-
-  async function handleContactDecision(id: string, status: "ACCEPTED" | "DECLINED") {
-    await fetch("/api/contact-requests", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, status }),
-    });
-    loadAll();
   }
 
   if (loading) {
@@ -291,44 +259,6 @@ export default function ProfilePage() {
           </p>
         )}
       </div>
-
-      {/* Incoming Contact Requests */}
-      {incomingReqs.length > 0 && (
-        <div className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-bold text-stone-900">ဆက်သွယ်ရန် တောင်းဆိုချက်များ</h2>
-          <div className="mt-4 space-y-3">
-            {incomingReqs.map((r) => (
-              <div key={r.id} className="rounded-xl border border-stone-200 p-4 text-sm">
-                <p className="font-bold">
-                  {r.sender?.profile?.fullName || "ဗဟန်း-ညောင်တုန်းနွယ်ဖွား"} (
-                  {r.sender?.profile?.batchYearDisplay || ""})
-                </p>
-                <p className="mt-1 text-stone-700">{r.message}</p>
-                <div className="mt-3 flex items-center gap-2">
-                  {r.status === "PENDING" ? (
-                    <>
-                      <button
-                        onClick={() => handleContactDecision(r.id, "ACCEPTED")}
-                        className="rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-bold text-white"
-                      >
-                        လက်ခံမည် (ဖုန်းမျှဝေမည်)
-                      </button>
-                      <button
-                        onClick={() => handleContactDecision(r.id, "DECLINED")}
-                        className="rounded-lg border border-stone-300 px-3 py-1.5 text-xs font-medium"
-                      >
-                        ငြင်းပယ်မည်
-                      </button>
-                    </>
-                  ) : (
-                    <span className="text-xs font-semibold text-stone-500">Status: {r.status}</span>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Request Correction */}
       <div className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">

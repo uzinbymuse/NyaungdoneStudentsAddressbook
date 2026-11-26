@@ -9,6 +9,7 @@ import {
   toWesternDigits,
 } from "@/lib/myanmar-utils";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { getHiddenContactIds } from "@/lib/hidden-contacts";
 
 export async function GET(req: NextRequest) {
   const session = await requireVerifiedMember();
@@ -38,6 +39,13 @@ export async function GET(req: NextRequest) {
   const batchDigits = batchRaw ? toWesternDigits(batchRaw).match(/\d{4}/) : null;
   const batchYearMm = batchDigits ? parseInt(batchDigits[0], 10) : null;
 
+  // Web contacts are visible to every logged-in verified member — no
+  // more contact requests. Only profiles the admin hid (hideContactsWeb)
+  // stay masked/hidden. `omit` keeps this query working before `npx
+  // prisma db push` adds the new column; the helper returns an empty
+  // set in that window.
+  const hiddenIds = await getHiddenContactIds();
+
   const records = await prisma.alumniProfile.findMany({
     where: {
       profileStatus: "VERIFIED",
@@ -59,18 +67,12 @@ export async function GET(req: NextRequest) {
     },
     take: 20, // Anti-scraping: max 20 results per query
     orderBy: [{ batchYearMm: "asc" }, { fullName: "asc" }],
-    include: {
-      receivedContactReqs: {
-        where: { senderId: session.userId, status: "ACCEPTED" },
-        select: { id: true },
-      },
-    },
+    omit: { hideContactsWeb: true },
   });
 
   const results = records.map((r) => {
-    const hasAcceptedContact = r.receivedContactReqs.length > 0;
+    const hidden = hiddenIds.has(r.id);
     const rawPhone = decryptField(r.phonePrimaryEnc);
-    const canSeePhone = r.showPhoneWeb || hasAcceptedContact;
 
     return {
       id: r.id,
@@ -94,12 +96,11 @@ export async function GET(req: NextRequest) {
       township: r.township,
       city: r.city,
       wardOrVillage: r.showWardWeb ? r.wardOrVillage : null,
-      phoneDisplay: canSeePhone ? rawPhone : rawPhone ? maskPhone(rawPhone) : null,
-      phoneRevealed: canSeePhone,
-      viber: r.showViberTgWeb || hasAcceptedContact ? decryptField(r.viberEnc) : null,
-      telegram: r.showViberTgWeb || hasAcceptedContact ? decryptField(r.telegramEnc) : null,
-      email: r.showEmailFbWeb || hasAcceptedContact ? decryptField(r.emailEnc) : null,
-      facebook: r.showEmailFbWeb || hasAcceptedContact ? decryptField(r.facebookEnc) : null,
+      phoneDisplay: hidden ? (rawPhone ? maskPhone(rawPhone) : null) : rawPhone,
+      viber: hidden ? null : decryptField(r.viberEnc),
+      telegram: hidden ? null : decryptField(r.telegramEnc),
+      email: hidden ? null : decryptField(r.emailEnc),
+      facebook: hidden ? null : decryptField(r.facebookEnc),
       lastConfirmedAt: r.lastConfirmedAt,
     };
   });

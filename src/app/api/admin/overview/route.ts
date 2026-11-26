@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 import { decryptField } from "@/lib/crypto";
+import { getHiddenContactIds } from "@/lib/hidden-contacts";
 
 export async function GET() {
   const admin = await requireAdmin();
@@ -9,11 +10,12 @@ export async function GET() {
     return NextResponse.json({ error: "Admin access required" }, { status: 403 });
   }
 
-  const [allProfiles, corrections, auditLogs] = await Promise.all([
+  const [allProfiles, corrections, auditLogs, hiddenIds] = await Promise.all([
     prisma.alumniProfile.findMany({
       where: { profileStatus: { not: "MERGED" } },
       orderBy: { createdAt: "desc" },
       include: { consents: true },
+      omit: { hideContactsWeb: true },
     }),
     prisma.correctionRequest.findMany({
       where: { status: "PENDING" },
@@ -26,6 +28,7 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
       take: 30,
     }),
+    getHiddenContactIds(),
   ]);
 
   const stats = {
@@ -90,9 +93,7 @@ export async function GET() {
     telegram: decryptField(p.telegramEnc),
     email: decryptField(p.emailEnc),
     facebook: decryptField(p.facebookEnc),
-    showPhoneWeb: p.showPhoneWeb,
-    showViberTgWeb: p.showViberTgWeb,
-    showEmailFbWeb: p.showEmailFbWeb,
+    hideContactsWeb: hiddenIds.has(p.id),
     showWardWeb: p.showWardWeb,
     showPhonePrint: p.showPhonePrint,
     showWardPrint: p.showWardPrint,
