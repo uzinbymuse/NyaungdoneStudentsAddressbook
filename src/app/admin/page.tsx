@@ -113,6 +113,15 @@ interface CorrectionItem {
   alumni: { alumniCode: string; fullName: string };
 }
 
+interface SelfEditItem {
+  id: string;
+  createdAt: string;
+  alumniId?: string | null;
+  alumniCode: string;
+  fullName: string;
+  changes: Array<{ field: string; label: string; old: string; new: string }>;
+}
+
 interface PrintEntry {
   alumniCode: string;
   fullName: string;
@@ -132,7 +141,7 @@ interface PrintEntry {
 }
 
 export default function AdminDashboardPage() {
-  const [tab, setTab] = useState<"PENDING" | "ALL" | "DUPLICATES" | "CORRECTIONS" | "PRINT" | "IMPORT" | "BACKUP" | "LOGS" | "DORMITORIES" | "SETTINGS">("PENDING");
+  const [tab, setTab] = useState<"PENDING" | "ALL" | "DUPLICATES" | "CORRECTIONS" | "CHANGES" | "PRINT" | "IMPORT" | "BACKUP" | "LOGS" | "DORMITORIES" | "SETTINGS">("PENDING");
   const [stats, setStats] = useState({
     total: 0,
     verified: 0,
@@ -143,6 +152,7 @@ export default function AdminDashboardPage() {
   });
   const [alumniList, setAlumniList] = useState<AdminAlumni[]>([]);
   const [corrections, setCorrections] = useState<CorrectionItem[]>([]);
+  const [selfEdits, setSelfEdits] = useState<SelfEditItem[]>([]);
   const [auditLogs, setAuditLogs] = useState<Array<{ id: string; action: string; targetType: string; createdAt: string }>>([]);
   const [printData, setPrintData] = useState<{
     eligibleCount: number;
@@ -207,6 +217,7 @@ export default function AdminDashboardPage() {
     setStats(ov.stats);
     setAlumniList(ov.alumniList || []);
     setCorrections(ov.corrections || []);
+    setSelfEdits(ov.selfEdits || []);
     setAuditLogs(ov.auditLogs || []);
 
     if (pubRes.ok) {
@@ -591,6 +602,7 @@ export default function AdminDashboardPage() {
           { id: "ALL", label: `All (${alumniList.length})` },
           { id: "DUPLICATES", label: `Duplicates (${duplicateList.length})` },
           { id: "CORRECTIONS", label: `Corrections (${corrections.length})` },
+          { id: "CHANGES", label: `ပြောင်းထားသူများ (${selfEdits.length})` },
           { id: "PRINT", label: "Print Book Export" },
           { id: "IMPORT", label: "Excel / CSV Import" },
           { id: "BACKUP", label: "Backup / Restore" },
@@ -749,6 +761,55 @@ export default function AdminDashboardPage() {
                   Reject
                 </button>
               </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Tab Content: SELF-EDITS (members' direct Tier 1 changes) */}
+      {tab === "CHANGES" && (
+        <div className="space-y-3">
+          <p className="rounded-2xl border border-stone-200 bg-white p-4 text-sm text-stone-600">
+            အဖွဲ့ဝင်တွေ ကိုယ်တိုင် တိုက်ရိုက်ပြင်ထားတဲ့ ဆက်သွယ်ရန်နှင့် လိပ်စာ အပြောင်းအလဲများ (နောက်ဆုံး
+            ၅၀)။ မှားနေတာတွေ့ရင် "ပြင်ဆင်မည်" နဲ့ Admin edit မှာ ပြန်ပြင်နိုင်ပါသည်။
+          </p>
+          {selfEdits.length === 0 && (
+            <p className="rounded-2xl bg-white p-6 text-center text-sm text-stone-500">
+              ကိုယ်တိုင် ပြင်ထားသူ မရှိသေးပါ။
+            </p>
+          )}
+          {selfEdits.map((s) => (
+            <div key={s.id} className="rounded-2xl border border-stone-200 bg-white p-5">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <p className="font-bold text-stone-900">
+                  [{s.alumniCode}] {s.fullName}
+                </p>
+                <span className="text-xs text-stone-500">
+                  {new Date(s.createdAt).toLocaleString()}
+                </span>
+              </div>
+              <div className="mt-2 space-y-1 text-sm">
+                {s.changes.map((c) => (
+                  <p key={c.field} className="text-stone-700">
+                    <span className="font-semibold">{c.label}:</span>{" "}
+                    <span className="text-stone-500">{c.old || "(မရှိ)"}</span>
+                    {" → "}
+                    <span className="font-semibold text-stone-900">{c.new || "(မရှိ)"}</span>
+                  </p>
+                ))}
+              </div>
+              {s.alumniId &&
+                (() => {
+                  const item = alumniList.find((a) => a.id === s.alumniId);
+                  return item ? (
+                    <button
+                      onClick={() => openEdit(item)}
+                      className="mt-3 rounded-lg border border-stone-300 px-3 py-1.5 text-xs font-bold text-stone-700 hover:bg-stone-100"
+                    >
+                      ပြင်ဆင်မည်
+                    </button>
+                  ) : null;
+                })()}
             </div>
           ))}
         </div>

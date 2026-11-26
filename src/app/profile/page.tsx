@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { BookOpen, CheckCircle2, Clock, Edit3, KeyRound } from "lucide-react";
-import { dedupeAddressParts } from "@/lib/myanmar-utils";
+import { dedupeAddressParts, toWesternDigits } from "@/lib/myanmar-utils";
+import { COUNTRIES, MYANMAR_REGIONS } from "@/lib/mimu-locations";
 
 interface ProfileData {
   id: string;
@@ -16,6 +17,7 @@ interface ProfileData {
   stayPeriod?: string | null;
   currentRoleOrMonastery: string;
   currentMonastery?: string | null;
+  countryCode: string;
   countryName: string;
   isDomestic: boolean;
   region?: string | null;
@@ -23,6 +25,11 @@ interface ProfileData {
   city: string;
   wardOrVillage?: string | null;
   phonePrimary?: string | null;
+  phoneSecondary?: string | null;
+  viber?: string | null;
+  telegram?: string | null;
+  email?: string | null;
+  facebook?: string | null;
   showPhoneWeb: boolean;
   showViberTgWeb: boolean;
   showEmailFbWeb: boolean;
@@ -40,12 +47,33 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState("");
 
-  const [corrRole, setCorrRole] = useState("");
-  const [corrMonastery, setCorrMonastery] = useState("");
+  // Correction request (Tier 2 — identity/school fields, admin approval).
+  const [corrFullName, setCorrFullName] = useState("");
+  const [corrDegree, setCorrDegree] = useState("");
+  const [corrBatch, setCorrBatch] = useState("");
+  const [corrDormitory, setCorrDormitory] = useState("");
   const [corrBirthplace, setCorrBirthplace] = useState("");
-  const [corrCity, setCorrCity] = useState("");
-  const [corrPhone, setCorrPhone] = useState("");
   const [corrReason, setCorrReason] = useState("");
+
+  // Direct self-edit (Tier 1 — contacts + current address + current
+  // monastery/role). Pre-filled from the profile once it loads.
+  const [editPhone, setEditPhone] = useState("");
+  const [editPhoneSecondary, setEditPhoneSecondary] = useState("");
+  const [editViber, setEditViber] = useState("");
+  const [editTelegram, setEditTelegram] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editFacebook, setEditFacebook] = useState("");
+  const [editCountryCode, setEditCountryCode] = useState("MM");
+  const [editCountryOther, setEditCountryOther] = useState("");
+  const [editRegion, setEditRegion] = useState("");
+  const [editTownship, setEditTownship] = useState("");
+  const [editCity, setEditCity] = useState("");
+  const [editWard, setEditWard] = useState("");
+  const [editMonastery, setEditMonastery] = useState("");
+  const [editRole, setEditRole] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState("");
+  const [editSuccess, setEditSuccess] = useState("");
 
   const [pwCurrent, setPwCurrent] = useState("");
   const [pwNew, setPwNew] = useState("");
@@ -82,14 +110,108 @@ export default function ProfilePage() {
     }
   }, []);
 
+  // Fill the direct-edit form from the loaded profile (also refreshes
+  // it after a save, via loadAll).
+  useEffect(() => {
+    if (!profile) return;
+    setEditPhone(profile.phonePrimary || "");
+    setEditPhoneSecondary(profile.phoneSecondary || "");
+    setEditViber(profile.viber || "");
+    setEditTelegram(profile.telegram || "");
+    setEditEmail(profile.email || "");
+    setEditFacebook(profile.facebook || "");
+    setEditCountryCode(profile.countryCode || "MM");
+    setEditCountryOther(profile.countryCode === "OTHER" ? profile.countryName : "");
+    setEditRegion(profile.region || "");
+    setEditTownship(profile.township || "");
+    setEditCity(profile.city || "");
+    setEditWard(profile.wardOrVillage || "");
+    setEditMonastery(profile.currentMonastery || "");
+    setEditRole(profile.currentRoleOrMonastery || "");
+  }, [profile]);
+
+  const editTownships = MYANMAR_REGIONS[editRegion] || [];
+  const editIsDomestic = editCountryCode === "MM";
+
+  function handleEditCountryChange(code: string) {
+    if (code === "MM") {
+      const first = MYANMAR_REGIONS["ရန်ကုန်တိုင်းဒေသကြီး"]?.[0] || "";
+      setEditCountryCode(code);
+      setEditRegion("ရန်ကုန်တိုင်းဒေသကြီး");
+      setEditTownship(first);
+      setEditCity("");
+    } else {
+      setEditCountryCode(code);
+      setEditRegion("");
+      setEditTownship("");
+    }
+  }
+
+  function handleEditRegionChange(newRegion: string) {
+    const nextTownships = MYANMAR_REGIONS[newRegion] || [];
+    setEditRegion(newRegion);
+    setEditTownship(nextTownships[0] || "");
+  }
+
+  async function submitSelfEdit(e: React.FormEvent) {
+    e.preventDefault();
+    setEditError("");
+    setEditSuccess("");
+    setEditSaving(true);
+    try {
+      const res = await fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "UPDATE_SELF",
+          fields: {
+            phonePrimary: editPhone,
+            phoneSecondary: editPhoneSecondary,
+            viber: editViber,
+            telegram: editTelegram,
+            email: editEmail,
+            facebook: editFacebook,
+            countryCode: editCountryCode,
+            countryOther: editCountryOther,
+            region: editRegion,
+            township: editTownship,
+            city: editCity,
+            wardOrVillage: editWard,
+            currentMonastery: editMonastery,
+            currentRoleOrMonastery: editRole,
+          },
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setEditError(data.error || "ပြင်ဆင်ရာတွင် အမှားအယွင်း ဖြစ်ပွားပါသည်။");
+        return;
+      }
+      if (data.changedFields?.length === 0) {
+        setEditSuccess("ပြောင်းလဲစရာ မရှိပါ။");
+      } else if (data.phoneChanged) {
+        setEditSuccess(
+          "သိမ်းဆည်းပြီးပါပြီ။ ဖုန်းနံပါတ် ပြောင်းသွားပြီမို့ နောက်တစ်ခါ Login ဝင်တဲ့အခါ ဖုန်းအသစ်နဲ့ ဝင်ရပါမယ်။"
+        );
+      } else {
+        setEditSuccess("သိမ်းဆည်းပြီးပါပြီ။ Admin ထံ ပြောင်းလဲမှု မှတ်တမ်း ရောက်ရှိပါပြီ။");
+      }
+      loadAll();
+    } catch {
+      setEditError("ချိတ်ဆက်မှု အမှားအယွင်း ဖြစ်ပွားပါသည်။");
+    } finally {
+      setEditSaving(false);
+    }
+  }
+
   async function submitCorrection(e: React.FormEvent) {
     e.preventDefault();
     const proposedData: Record<string, string> = {};
-    if (corrRole.trim()) proposedData.currentRoleOrMonastery = corrRole.trim();
-    if (corrMonastery.trim()) proposedData.currentMonastery = corrMonastery.trim();
+    if (corrFullName.trim()) proposedData.fullName = corrFullName.trim();
+    if (corrDegree.trim()) proposedData.degreeName = corrDegree.trim();
+    if (corrBatch.trim()) proposedData.batchYearDisplay = corrBatch.trim();
+    if (corrDormitory.trim()) proposedData.dormitory = corrDormitory.trim();
     if (corrBirthplace.trim()) proposedData.birthplace = corrBirthplace.trim();
-    if (corrCity.trim()) proposedData.city = corrCity.trim();
-    if (corrPhone.trim()) proposedData.phonePrimary = corrPhone.trim();
 
     const res = await fetch("/api/profile", {
       method: "POST",
@@ -98,11 +220,11 @@ export default function ProfilePage() {
     });
     if (res.ok) {
       setNotice("ပြင်ဆင်ရန် တောင်းဆိုချက်ကို Admin ထံ ပေးပို့ပြီးပါပြီ။");
-      setCorrRole("");
-      setCorrMonastery("");
+      setCorrFullName("");
+      setCorrDegree("");
+      setCorrBatch("");
+      setCorrDormitory("");
       setCorrBirthplace("");
-      setCorrCity("");
-      setCorrPhone("");
       setCorrReason("");
       loadAll();
     }
@@ -260,21 +382,249 @@ export default function ProfilePage() {
         )}
       </div>
 
+      {/* Direct Self-Edit: contacts + current address + monastery/role */}
+      <div className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
+        <div className="flex items-center gap-2 text-stone-900">
+          <Edit3 className="h-5 w-5 text-amber-800" />
+          <h2 className="text-lg font-bold">ဆက်သွယ်ရန်နှင့် လိပ်စာ ကိုယ်တိုင်ပြင်ရန်</h2>
+        </div>
+        <p className="mt-1 text-xs text-stone-600">
+          ဒီအချက်တွေကို ပြင်လိုက်တာနဲ့ တန်းပြောင်းလဲပါမယ်။ ဖုန်းအဓိက ပြောင်းလိုက်ရင် နောက်တစ်ခါ Login
+          ဝင်တဲ့အခါ ဖုန်းအသစ်နဲ့ ဝင်ရပါမယ်။ ပြောင်းလဲမှုတိုင်းကို Admin က စာရင်းမှာ မြင်ရပါမယ်။
+        </p>
+        <form onSubmit={submitSelfEdit} className="mt-4 grid gap-3 sm:grid-cols-2">
+          <label className="block text-sm">
+            <span className="font-semibold text-stone-800">
+              ဖုန်းနံပါတ် (အဓိက) <span className="text-red-600">*</span>
+            </span>
+            <input
+              type="text"
+              required
+              value={editPhone}
+              onChange={(e) => setEditPhone(toWesternDigits(e.target.value))}
+              className="latin-nums mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="font-semibold text-stone-800">ဖုန်း (အရန်)</span>
+            <input
+              type="text"
+              value={editPhoneSecondary}
+              onChange={(e) => setEditPhoneSecondary(toWesternDigits(e.target.value))}
+              className="latin-nums mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="font-semibold text-stone-800">Viber</span>
+            <input
+              type="text"
+              value={editViber}
+              onChange={(e) => setEditViber(toWesternDigits(e.target.value))}
+              className="latin-nums mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="font-semibold text-stone-800">Telegram</span>
+            <input
+              type="text"
+              value={editTelegram}
+              onChange={(e) => setEditTelegram(toWesternDigits(e.target.value))}
+              className="latin-nums mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="font-semibold text-stone-800">အီးမေးလ်</span>
+            <input
+              type="text"
+              value={editEmail}
+              onChange={(e) => setEditEmail(toWesternDigits(e.target.value))}
+              className="latin-nums mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="font-semibold text-stone-800">Facebook</span>
+            <input
+              type="text"
+              value={editFacebook}
+              onChange={(e) => setEditFacebook(toWesternDigits(e.target.value))}
+              className="latin-nums mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="font-semibold text-stone-800">နိုင်ငံ</span>
+            <select
+              value={editCountryCode}
+              onChange={(e) => handleEditCountryChange(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm"
+            >
+              {COUNTRIES.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.nameMm} ({c.nameEn})
+                </option>
+              ))}
+            </select>
+          </label>
+          {editCountryCode === "OTHER" && (
+            <label className="block text-sm">
+              <span className="font-semibold text-stone-800">နိုင်ငံအမည်</span>
+              <input
+                type="text"
+                value={editCountryOther}
+                onChange={(e) => setEditCountryOther(e.target.value)}
+                className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm"
+              />
+            </label>
+          )}
+          {editIsDomestic ? (
+            <>
+              <label className="block text-sm">
+                <span className="font-semibold text-stone-800">
+                  တိုင်းဒေသကြီး / ပြည်နယ် <span className="text-red-600">*</span>
+                </span>
+                <select
+                  value={editRegion}
+                  onChange={(e) => handleEditRegionChange(e.target.value)}
+                  className="mt-1 w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm"
+                >
+                  {Object.keys(MYANMAR_REGIONS).map((reg) => (
+                    <option key={reg} value={reg}>
+                      {reg}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block text-sm">
+                <span className="font-semibold text-stone-800">
+                  မြို့နယ်/မြို့ <span className="text-red-600">*</span>
+                </span>
+                <select
+                  value={editTownship}
+                  onChange={(e) => setEditTownship(e.target.value)}
+                  className="mt-1 w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm"
+                >
+                  {editTownships.map((ts) => (
+                    <option key={ts} value={ts}>
+                      {ts}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </>
+          ) : (
+            <>
+              <label className="block text-sm">
+                <span className="font-semibold text-stone-800">ပြည်နယ် / ဒေသ (ရှိလျှင်)</span>
+                <input
+                  type="text"
+                  value={editRegion}
+                  onChange={(e) => setEditRegion(e.target.value)}
+                  placeholder="ဥပမာ - Bangkok / California"
+                  className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm"
+                />
+              </label>
+              <label className="block text-sm">
+                <span className="font-semibold text-stone-800">
+                  မြို့နယ်/မြို့ <span className="text-red-600">*</span>
+                </span>
+                <input
+                  type="text"
+                  value={editCity}
+                  onChange={(e) => setEditCity(e.target.value)}
+                  className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm"
+                />
+              </label>
+            </>
+          )}
+          <label className="block text-sm">
+            <span className="font-semibold text-stone-800">ရွာ/ရပ်ကွက်</span>
+            <input
+              type="text"
+              value={editWard}
+              onChange={(e) => setEditWard(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="font-semibold text-stone-800">လက်ရှိကျောင်းတိုက်-ကျောင်းဆောင်</span>
+            <input
+              type="text"
+              value={editMonastery}
+              onChange={(e) => setEditMonastery(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm"
+            />
+          </label>
+          <label className="block text-sm sm:col-span-2">
+            <span className="font-semibold text-stone-800">
+              အလုပ်/တာဝန် <span className="text-red-600">*</span>
+            </span>
+            <input
+              type="text"
+              required
+              value={editRole}
+              onChange={(e) => setEditRole(e.target.value)}
+              className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm"
+            />
+          </label>
+          <div className="sm:col-span-2">
+            <button
+              type="submit"
+              disabled={editSaving}
+              className="rounded-xl bg-amber-800 px-4 py-2 text-sm font-bold text-white hover:bg-amber-900 disabled:opacity-60"
+            >
+              {editSaving ? "သိမ်းနေပါသည်..." : "သိမ်းဆည်းမည်"}
+            </button>
+          </div>
+        </form>
+        {editError && (
+          <p className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-800">
+            {editError}
+          </p>
+        )}
+        {editSuccess && (
+          <p className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-800">
+            {editSuccess}
+          </p>
+        )}
+      </div>
+
       {/* Request Correction */}
       <div className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
         <div className="flex items-center gap-2 text-stone-900">
           <Edit3 className="h-5 w-5 text-amber-800" />
-          <h2 className="text-lg font-bold">အချက်အလက် ပြင်ဆင်ရန် တောင်းဆိုခြင်း</h2>
+          <h2 className="text-lg font-bold">အမည်/ဘွဲ့ စသည့် အချက်များ ပြင်ဆင်ရန် တောင်းဆိုခြင်း</h2>
         </div>
         <p className="mt-1 text-xs text-stone-600">
-          Admin မှ စစ်ဆေးအတည်ပြုပြီးမှသာ အဓိကမှတ်တမ်းတွင် ပြောင်းလဲပါမည်။
+          အမည်၊ အမြင့်ဆုံး သင်ယူ/အောင်ခဲ့သည့် အတန်း၊ ကျောင်းသို့ရောက်သည့်ခုနှစ်၊ ကျောင်းဆောင်၊
+          မွေးဇာတိမြို့ — ဒီအချက်တွေကတော့ Admin မှ စစ်ဆေးအတည်ပြုပြီးမှသာ အဓိကမှတ်တမ်းတွင်
+          ပြောင်းလဲပါမည်။ ဆက်သွယ်ရန်နှင့် လိပ်စာကိုတော့ အပေါ်က ဖောင်မှာ ကိုယ်တိုင်တန်း ပြင်နိုင်ပါသည်။
         </p>
         <form onSubmit={submitCorrection} className="mt-4 grid gap-3 sm:grid-cols-3">
           <input
             type="text"
-            value={corrMonastery}
-            onChange={(e) => setCorrMonastery(e.target.value)}
-            placeholder="လက်ရှိကျောင်းတိုက် (အသစ်)"
+            value={corrFullName}
+            onChange={(e) => setCorrFullName(e.target.value)}
+            placeholder="အမည် (အသစ်)"
+            className="rounded-xl border border-stone-300 px-3 py-2 text-sm"
+          />
+          <input
+            type="text"
+            value={corrDegree}
+            onChange={(e) => setCorrDegree(e.target.value)}
+            placeholder="အမြင့်ဆုံး သင်ယူ/အောင်ခဲ့သည့် အတန်း (အသစ်)"
+            className="rounded-xl border border-stone-300 px-3 py-2 text-sm"
+          />
+          <input
+            type="text"
+            value={corrBatch}
+            onChange={(e) => setCorrBatch(e.target.value)}
+            placeholder="ကျောင်းသို့ရောက်သည့်ခုနှစ် (အသစ်)"
+            className="rounded-xl border border-stone-300 px-3 py-2 text-sm"
+          />
+          <input
+            type="text"
+            value={corrDormitory}
+            onChange={(e) => setCorrDormitory(e.target.value)}
+            placeholder="ကျောင်းဆောင် (အသစ်)"
             className="rounded-xl border border-stone-300 px-3 py-2 text-sm"
           />
           <input
@@ -283,27 +633,6 @@ export default function ProfilePage() {
             onChange={(e) => setCorrBirthplace(e.target.value)}
             placeholder="မွေးဇာတိမြို့ (အသစ်)"
             className="rounded-xl border border-stone-300 px-3 py-2 text-sm"
-          />
-          <input
-            type="text"
-            value={corrRole}
-            onChange={(e) => setCorrRole(e.target.value)}
-            placeholder="လက်ရှိတာဝန် (အသစ်)"
-            className="rounded-xl border border-stone-300 px-3 py-2 text-sm"
-          />
-          <input
-            type="text"
-            value={corrCity}
-            onChange={(e) => setCorrCity(e.target.value)}
-            placeholder="လက်ရှိမြို့ (အသစ်)"
-            className="rounded-xl border border-stone-300 px-3 py-2 text-sm"
-          />
-          <input
-            type="text"
-            value={corrPhone}
-            onChange={(e) => setCorrPhone(e.target.value)}
-            placeholder="ဖုန်းနံပါတ် (အသစ်)"
-            className="latin-nums rounded-xl border border-stone-300 px-3 py-2 text-sm"
           />
           <input
             type="text"

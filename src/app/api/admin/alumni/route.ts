@@ -151,7 +151,10 @@ export async function POST(req: NextRequest) {
 
   if (action === "APPROVE_CORRECTION" || action === "REJECT_CORRECTION") {
     const correctionId = String(body.correctionId || "");
-    const cr = await prisma.correctionRequest.findUnique({ where: { id: correctionId } });
+    const cr = await prisma.correctionRequest.findUnique({
+      where: { id: correctionId },
+      include: { alumni: { select: { userId: true, phoneLookupHash: true } } },
+    });
     if (!cr) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
@@ -206,16 +209,53 @@ export async function POST(req: NextRequest) {
         updateFields.phoneLookupHash = hmacLookup(normalizePhoneForHash(cleanPhone));
       }
 
-      await prisma.$transaction([
-        prisma.alumniProfile.update({
+      // A phone change must also move the LOGIN identifier (User
+      // loginPhoneHash) — otherwise the member cannot log in with the
+      // new number. Refuse if another account already uses it.
+      const phoneChanged =
+        typeof updateFields.phoneLookupHash === "string" &&
+        cr.alumni &&
+        updateFields.phoneLookupHash !== cr.alumni.phoneLookupHash;
+      if (phoneChanged) {
+        const newHash = updateFields.phoneLookupHash as string;
+        const clash = await prisma.alumniProfile.findFirst({
+          where: { phoneLookupHash: newHash, id: { not: cr.alumniId } },
+        });
+        if (clash) {
+          return NextResponse.json(
+            { error: "ဤဖုန်းနံပါတ်ဖြင့် အခြားမှတ်တမ်း ရှိပြီးသား ဖြစ်နေပါသည်။" },
+            { status: 409 }
+          );
+        }
+        if (cr.alumni.userId) {
+          const userClash = await prisma.user.findFirst({
+            where: { loginPhoneHash: newHash, id: { not: cr.alumni.userId } },
+          });
+          if (userClash) {
+            return NextResponse.json(
+              { error: "ဤဖုန်းနံပါတ်ဖြင့် အခြားအကောင့် ရှိပြီးသား ဖြစ်နေပါသည်။" },
+              { status: 409 }
+            );
+          }
+        }
+      }
+
+      await prisma.$transaction(async (tx) => {
+        await tx.alumniProfile.update({
           where: { id: cr.alumniId },
           data: updateFields,
-        }),
-        prisma.correctionRequest.update({
+        });
+        if (phoneChanged && cr.alumni?.userId) {
+          await tx.user.update({
+            where: { id: cr.alumni.userId },
+            data: { loginPhoneHash: updateFields.phoneLookupHash as string },
+          });
+        }
+        await tx.correctionRequest.update({
           where: { id: correctionId },
           data: { status: "APPROVED", reviewedById: admin.userId, reviewedAt: new Date() },
-        }),
-      ]);
+        });
+      });
     } else {
       await prisma.correctionRequest.update({
         where: { id: correctionId },

@@ -10,7 +10,7 @@ export async function GET() {
     return NextResponse.json({ error: "Admin access required" }, { status: 403 });
   }
 
-  const [allProfiles, corrections, auditLogs, hiddenIds] = await Promise.all([
+  const [allProfiles, corrections, auditLogs, hiddenIds, selfEditLogs] = await Promise.all([
     prisma.alumniProfile.findMany({
       where: { profileStatus: { not: "MERGED" } },
       orderBy: { createdAt: "desc" },
@@ -29,6 +29,11 @@ export async function GET() {
       take: 30,
     }),
     getHiddenContactIds(),
+    prisma.auditLog.findMany({
+      where: { action: "PROFILE_SELF_UPDATED" },
+      orderBy: { createdAt: "desc" },
+      take: 50,
+    }),
   ]);
 
   const stats = {
@@ -108,10 +113,29 @@ export async function GET() {
     createdAt: p.createdAt,
   }));
 
+  // Members' direct self-edits (Tier 1): who, when, and old -> new
+  // per field, for the admin "ပြောင်းထားသူများ" list. Actor is matched
+  // to the profile by userId.
+  const selfEdits = selfEditLogs.map((l) => {
+    const p = allProfiles.find((x) => x.userId === l.actorId);
+    const details = (l.details || {}) as {
+      changes?: Array<{ field: string; label: string; old: string; new: string }>;
+    };
+    return {
+      id: l.id,
+      createdAt: l.createdAt,
+      alumniId: l.targetId,
+      alumniCode: p?.alumniCode || "",
+      fullName: p?.fullName || "",
+      changes: details.changes || [],
+    };
+  });
+
   return NextResponse.json({
     stats,
     alumniList,
     corrections,
     auditLogs,
+    selfEdits,
   });
 }
