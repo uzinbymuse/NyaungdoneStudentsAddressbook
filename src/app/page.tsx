@@ -1,30 +1,10 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { BookOpen, Search, Shield, Users } from "lucide-react";
 import MembershipCheck from "@/components/MembershipCheck";
 
-export const instant = false;
-
-export default async function HomePage() {
-  let verified = 0;
-  let domestic = 0;
-  let international = 0;
-
-  try {
-    const groups = await prisma.alumniProfile.groupBy({
-      by: ["isDomestic"],
-      where: { profileStatus: "VERIFIED" },
-      _count: { _all: true },
-    });
-    for (const g of groups) {
-      if (g.isDomestic) domestic = g._count._all;
-      else international = g._count._all;
-    }
-    verified = domestic + international;
-  } catch {
-    // Fallback if DB is not reachable during static check
-  }
-
+export default function HomePage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
       {/* Hero Section */}
@@ -67,24 +47,13 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Aggregate Counts (No personal info exposed publicly) */}
-      <section className="mt-8 grid gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-stone-200 bg-white p-6 text-center shadow-sm">
-          <Users className="mx-auto h-7 w-7 text-amber-800" />
-          <div className="mt-2 text-3xl font-bold text-stone-900">{verified}</div>
-          <div className="mt-1 text-sm font-medium text-stone-600">အတည်ပြုပြီး ဗဟန်း-ညောင်တုန်းနွယ်ဖွား</div>
-        </div>
-        <div className="rounded-2xl border border-stone-200 bg-white p-6 text-center shadow-sm">
-          <BookOpen className="mx-auto h-7 w-7 text-emerald-700" />
-          <div className="mt-2 text-3xl font-bold text-stone-900">{domestic}</div>
-          <div className="mt-1 text-sm font-medium text-stone-600">ပြည်တွင်း နေထိုင်သူများ</div>
-        </div>
-        <div className="rounded-2xl border border-stone-200 bg-white p-6 text-center shadow-sm">
-          <Search className="mx-auto h-7 w-7 text-sky-700" />
-          <div className="mt-2 text-3xl font-bold text-stone-900">{international}</div>
-          <div className="mt-1 text-sm font-medium text-stone-600">ပြည်ပ နေထိုင်သူများ</div>
-        </div>
-      </section>
+      {/* Aggregate counts (no personal info exposed publicly). Streamed so
+          the page paints instantly and the numbers fill in when ready —
+          under Cache Components, uncached data must live inside a
+          <Suspense> boundary instead of blocking the whole route. */}
+      <Suspense fallback={<StatsGrid loading />}>
+        <HomeStats />
+      </Suspense>
 
       <MembershipCheck />
 
@@ -106,5 +75,67 @@ export default async function HomePage() {
         </a>
       </p>
     </div>
+  );
+}
+
+async function HomeStats() {
+  let verified = 0;
+  let domestic = 0;
+  let international = 0;
+
+  try {
+    const groups = await prisma.alumniProfile.groupBy({
+      by: ["isDomestic"],
+      where: { profileStatus: "VERIFIED" },
+      _count: { _all: true },
+    });
+    for (const g of groups) {
+      if (g.isDomestic) domestic = g._count._all;
+      else international = g._count._all;
+    }
+    verified = domestic + international;
+  } catch {
+    // Fallback if DB is not reachable
+  }
+
+  return <StatsGrid verified={verified} domestic={domestic} international={international} />;
+}
+
+function StatsGrid({
+  verified,
+  domestic,
+  international,
+  loading,
+}: {
+  verified?: number;
+  domestic?: number;
+  international?: number;
+  loading?: boolean;
+}) {
+  const value = (n?: number) =>
+    loading ? (
+      <span className="inline-block h-8 w-12 animate-pulse rounded bg-stone-200 align-middle" />
+    ) : (
+      n
+    );
+
+  return (
+    <section className="mt-8 grid gap-4 sm:grid-cols-3">
+      <div className="rounded-2xl border border-stone-200 bg-white p-6 text-center shadow-sm">
+        <Users className="mx-auto h-7 w-7 text-amber-800" />
+        <div className="mt-2 text-3xl font-bold text-stone-900">{value(verified)}</div>
+        <div className="mt-1 text-sm font-medium text-stone-600">အတည်ပြုပြီး ဗဟန်း-ညောင်တုန်းနွယ်ဖွား</div>
+      </div>
+      <div className="rounded-2xl border border-stone-200 bg-white p-6 text-center shadow-sm">
+        <BookOpen className="mx-auto h-7 w-7 text-emerald-700" />
+        <div className="mt-2 text-3xl font-bold text-stone-900">{value(domestic)}</div>
+        <div className="mt-1 text-sm font-medium text-stone-600">ပြည်တွင်း နေထိုင်သူများ</div>
+      </div>
+      <div className="rounded-2xl border border-stone-200 bg-white p-6 text-center shadow-sm">
+        <Search className="mx-auto h-7 w-7 text-sky-700" />
+        <div className="mt-2 text-3xl font-bold text-stone-900">{value(international)}</div>
+        <div className="mt-1 text-sm font-medium text-stone-600">ပြည်ပ နေထိုင်သူများ</div>
+      </div>
+    </section>
   );
 }

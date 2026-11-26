@@ -46,31 +46,34 @@ export async function GET(req: NextRequest) {
   // stay masked/hidden. `omit` keeps this query working before `npx
   // prisma db push` adds the new column; the helper returns an empty
   // set in that window.
-  const hiddenIds = await getHiddenContactIds();
-
-  const records = await prisma.alumniProfile.findMany({
-    where: {
-      profileStatus: "VERIFIED",
-      ...(batchYearMm ? { batchYearMm } : {}),
-      ...(dormitory ? { dormitory: { contains: normalizeMyanmarText(dormitory), mode: "insensitive" } } : {}),
-      ...(countryCode ? { countryCode } : {}),
-      ...(region ? { region: { contains: normalizeMyanmarText(region), mode: "insensitive" } } : {}),
-      ...(q
-        ? {
-            OR: [
-              { normalizedName: { contains: normalizedQ, mode: "insensitive" } },
-              { fullName: { contains: normalizeMyanmarText(q), mode: "insensitive" } },
-              { formerName: { contains: normalizeMyanmarText(q), mode: "insensitive" } },
-              { degreeName: { contains: normalizeMyanmarText(q), mode: "insensitive" } },
-              { alumniCode: { contains: q, mode: "insensitive" } },
-            ],
-          }
-        : {}),
-    },
-    take: 20, // Anti-scraping: max 20 results per query
-    orderBy: [{ batchYearMm: "asc" }, { fullName: "asc" }],
-    omit: { hideContactsWeb: true },
-  });
+  // Run the two independent queries in parallel — one DB round-trip wave
+  // instead of two sequential ones.
+  const [hiddenIds, records] = await Promise.all([
+    getHiddenContactIds(),
+    prisma.alumniProfile.findMany({
+      where: {
+        profileStatus: "VERIFIED",
+        ...(batchYearMm ? { batchYearMm } : {}),
+        ...(dormitory ? { dormitory: { contains: normalizeMyanmarText(dormitory), mode: "insensitive" } } : {}),
+        ...(countryCode ? { countryCode } : {}),
+        ...(region ? { region: { contains: normalizeMyanmarText(region), mode: "insensitive" } } : {}),
+        ...(q
+          ? {
+              OR: [
+                { normalizedName: { contains: normalizedQ, mode: "insensitive" } },
+                { fullName: { contains: normalizeMyanmarText(q), mode: "insensitive" } },
+                { formerName: { contains: normalizeMyanmarText(q), mode: "insensitive" } },
+                { degreeName: { contains: normalizeMyanmarText(q), mode: "insensitive" } },
+                { alumniCode: { contains: q, mode: "insensitive" } },
+              ],
+            }
+          : {}),
+      },
+      take: 20, // Anti-scraping: max 20 results per query
+      orderBy: [{ batchYearMm: "asc" }, { fullName: "asc" }],
+      omit: { hideContactsWeb: true },
+    }),
+  ]);
 
   const results = records.map((r) => {
     const hidden = hiddenIds.has(r.id);

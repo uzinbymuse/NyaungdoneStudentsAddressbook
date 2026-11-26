@@ -149,8 +149,15 @@ export default function AdminDashboardPage() {
     domestic: 0,
     international: 0,
     pendingCorrections: 0,
+    duplicateCount: 0,
   });
   const [alumniList, setAlumniList] = useState<AdminAlumni[]>([]);
+  // Server-side pagination for the list tabs.
+  const [listTab, setListTab] = useState<"PENDING" | "ALL" | "DUPLICATES">("PENDING");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
+  const [listTotal, setListTotal] = useState(0);
+  const [dormitoryUsage, setDormitoryUsage] = useState<Record<string, number>>({});
   const [corrections, setCorrections] = useState<CorrectionItem[]>([]);
   const [selfEdits, setSelfEdits] = useState<SelfEditItem[]>([]);
   const [auditLogs, setAuditLogs] = useState<Array<{ id: string; action: string; targetType: string; createdAt: string }>>([]);
@@ -204,32 +211,73 @@ export default function AdminDashboardPage() {
     }
   }
 
-  async function loadDashboard() {
-    setError("");
-    const [ovRes, pubRes] = await Promise.all([
-      fetch("/api/admin/overview"),
-      fetch("/api/admin/publications"),
-    ]);
-    if (!ovRes.ok) {
-      setError("Admin ဝင်ရောက်ခွင့် မရှိပါ။ Admin အကောင့်ဖြင့် Login ဝင်ပါ။");
-      return;
+  async function loadPrintData() {
+    try {
+      const res = await fetch("/api/admin/publications");
+      if (res.ok) setPrintData(await res.json());
+    } catch {
+      // Print export is optional for the rest of the panel.
     }
-    const ov = await ovRes.json();
-    setStats(ov.stats);
-    setAlumniList(ov.alumniList || []);
-    setCorrections(ov.corrections || []);
-    setSelfEdits(ov.selfEdits || []);
-    setAuditLogs(ov.auditLogs || []);
+  }
 
-    if (pubRes.ok) {
-      setPrintData(await pubRes.json());
+  async function loadDashboard(
+    listTabArg: "PENDING" | "ALL" | "DUPLICATES" = listTab,
+    pageArg: number = page
+  ) {
+    setError("");
+    try {
+      const ovRes = await fetch(
+        `/api/admin/overview?tab=${listTabArg}&page=${pageArg}`
+      );
+      if (!ovRes.ok) {
+        setError("Admin ဝင်ရောက်ခွင့် မရှိပါ။ Admin အကောင့်ဖြင့် Login ဝင်ပါ။");
+        return;
+      }
+      const ov = await ovRes.json();
+      setStats(ov.stats);
+      setAlumniList(ov.alumniList || []);
+      setCorrections(ov.corrections || []);
+      setSelfEdits(ov.selfEdits || []);
+      setAuditLogs(ov.auditLogs || []);
+      setListTotal(ov.listTotal ?? 0);
+      setPageSize(ov.pageSize ?? 50);
+      setDormitoryUsage(ov.dormitoryUsage || {});
+    } catch {
+      setError("ချိတ်ဆက်မှု အမှားအယွင်း ဖြစ်ပွားပါသည်။");
     }
     loadDormitories();
   }
 
+  function selectTab(id: typeof tab) {
+    setTab(id);
+    if (id === "PENDING" || id === "ALL" || id === "DUPLICATES") {
+      setListTab(id);
+      setPage(1);
+      loadDashboard(id, 1);
+    }
+  }
+
+  function gotoPage(p: number) {
+    setPage(p);
+    loadDashboard(listTab, p);
+  }
+
+  async function openEditById(id: string) {
+    const res = await fetch(`/api/admin/overview?alumniId=${id}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.alumni) openEdit(data.alumni as AdminAlumni);
+  }
+
   useEffect(() => {
-    loadDashboard();
+    loadDashboard("PENDING", 1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (tab === "PRINT" && !printData) loadPrintData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, printData]);
 
   useEffect(() => {
     if (tab === "SETTINGS" && !credLoaded) {
@@ -494,7 +542,7 @@ export default function AdminDashboardPage() {
     });
     if (res.ok) {
       setNotice(`"${editionTitle}" Snapshot ကို အောင်မြင်စွာ Freeze လုပ်ပြီးပါပြီ။`);
-      loadDashboard();
+      loadPrintData();
     }
   }
 
@@ -532,8 +580,6 @@ export default function AdminDashboardPage() {
     );
   }
 
-  const pendingList = alumniList.filter((a) => a.profileStatus === "PENDING");
-  const duplicateList = alumniList.filter((a) => a.isPotentialDuplicate);
   const inp = "mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm";
   const lbl = "block text-xs font-bold text-stone-700";
   const setEdit = (patch: Partial<EditFormState>) =>
@@ -609,9 +655,9 @@ export default function AdminDashboardPage() {
       {/* Tabs */}
       <div className="flex flex-wrap gap-2 border-b border-stone-200 pb-3 text-sm font-semibold">
         {[
-          { id: "PENDING", label: `Pending (${pendingList.length})` },
-          { id: "ALL", label: `All (${alumniList.length})` },
-          { id: "DUPLICATES", label: `Duplicates (${duplicateList.length})` },
+          { id: "PENDING", label: `Pending (${stats.pending})` },
+          { id: "ALL", label: `All (${stats.total})` },
+          { id: "DUPLICATES", label: `Duplicates (${stats.duplicateCount})` },
           { id: "CORRECTIONS", label: `Corrections (${corrections.length})` },
           { id: "CHANGES", label: `ပြောင်းထားသူများ (${selfEdits.length})` },
           { id: "PRINT", label: "Print Book Export" },
@@ -623,7 +669,7 @@ export default function AdminDashboardPage() {
         ].map((t) => (
           <button
             key={t.id}
-            onClick={() => setTab(t.id as typeof tab)}
+            onClick={() => selectTab(t.id as typeof tab)}
             className={`rounded-xl px-4 py-2 ${
               tab === t.id
                 ? "bg-stone-900 text-white"
@@ -635,10 +681,10 @@ export default function AdminDashboardPage() {
         ))}
       </div>
 
-      {/* Tab Content: PENDING / ALL / DUPLICATES */}
+      {/* Tab Content: PENDING / ALL / DUPLICATES (server-filtered + paged) */}
       {(tab === "PENDING" || tab === "ALL" || tab === "DUPLICATES") && (
         <div className="space-y-4">
-          {(tab === "PENDING" ? pendingList : tab === "DUPLICATES" ? duplicateList : alumniList).map(
+          {alumniList.map(
             (item) => (
               <div
                 key={item.id}
@@ -734,6 +780,29 @@ export default function AdminDashboardPage() {
               </div>
             )
           )}
+          {listTotal > pageSize && (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-stone-200 bg-white p-4 text-sm">
+              <span className="text-stone-600">
+                {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, listTotal)} / {listTotal}
+              </span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => gotoPage(page - 1)}
+                  disabled={page <= 1}
+                  className="rounded-lg border border-stone-300 px-3 py-1.5 font-bold disabled:opacity-40"
+                >
+                  ← ရှေ့
+                </button>
+                <button
+                  onClick={() => gotoPage(page + 1)}
+                  disabled={page >= Math.ceil(listTotal / pageSize)}
+                  className="rounded-lg border border-stone-300 px-3 py-1.5 font-bold disabled:opacity-40"
+                >
+                  နောက် →
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -809,24 +878,29 @@ export default function AdminDashboardPage() {
                   </p>
                 ))}
               </div>
-              {s.alumniId &&
-                (() => {
-                  const item = alumniList.find((a) => a.id === s.alumniId);
-                  return item ? (
-                    <button
-                      onClick={() => openEdit(item)}
-                      className="mt-3 rounded-lg border border-stone-300 px-3 py-1.5 text-xs font-bold text-stone-700 hover:bg-stone-100"
-                    >
-                      ပြင်ဆင်မည်
-                    </button>
-                  ) : null;
-                })()}
+              {s.alumniId && (
+                <button
+                  onClick={() => {
+                    const item = alumniList.find((a) => a.id === s.alumniId);
+                    if (item) openEdit(item);
+                    else openEditById(s.alumniId as string);
+                  }}
+                  className="mt-3 rounded-lg border border-stone-300 px-3 py-1.5 text-xs font-bold text-stone-700 hover:bg-stone-100"
+                >
+                  ပြင်ဆင်မည်
+                </button>
+              )}
             </div>
           ))}
         </div>
       )}
 
-      {/* Tab Content: PRINT */}
+      {/* Tab Content: PRINT (data lazy-loads when this tab opens) */}
+      {tab === "PRINT" && !printData && (
+        <div className="rounded-2xl border border-stone-200 bg-white p-6 text-center text-sm text-stone-500">
+          Print စာရင်း ရယူနေပါသည်...
+        </div>
+      )}
       {tab === "PRINT" && printData && (
         <div className="space-y-6">
           <div className="rounded-2xl border border-amber-200 bg-white p-6">
@@ -974,7 +1048,7 @@ export default function AdminDashboardPage() {
 
           <div className="mt-4 space-y-2">
             {dormitories.map((d, index) => {
-              const inUse = alumniList.filter((a) => a.dormitory === d.name).length;
+              const inUse = dormitoryUsage[d.name] ?? 0;
               return (
                 <div
                   key={d.id}

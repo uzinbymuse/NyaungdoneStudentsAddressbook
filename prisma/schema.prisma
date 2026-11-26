@@ -1,10 +1,12 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [pg_trgm]
 }
 
 enum UserRole {
@@ -157,7 +159,14 @@ model AlumniProfile {
   correctionRequests     CorrectionRequest[]
   receivedContactReqs    ContactRequest[]
 
-  @@index([normalizedName])
+  // Trigram GIN indexes so the directory's "contains"/ILIKE search on these
+  // text columns stays fast as the table grows (btree cannot serve %x%).
+  // pg_trgm is declared in the datasource `extensions`, so `prisma db push`
+  // creates it automatically before the indexes.
+  @@index([normalizedName(ops: raw("gin_trgm_ops"))], type: Gin)
+  @@index([fullName(ops: raw("gin_trgm_ops"))], type: Gin)
+  @@index([formerName(ops: raw("gin_trgm_ops"))], type: Gin)
+  @@index([degreeName(ops: raw("gin_trgm_ops"))], type: Gin)
   @@index([phoneLookupHash])
   @@index([batchYearMm])
   @@index([profileStatus])
