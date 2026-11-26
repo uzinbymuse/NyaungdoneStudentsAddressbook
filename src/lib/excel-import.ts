@@ -214,7 +214,7 @@ function validateRow(
     errors.push("ဖုန်းနံပါတ် မမှန်ပါ");
   }
 
-  const emailRaw = (raw.email || "").trim().toLowerCase();
+  const emailRaw = toWesternDigits(raw.email || "").trim().toLowerCase();
   if (emailRaw && !/.+@.+\..+/.test(emailRaw)) errors.push("အီးမေးလ် ပုံစံ မမှန်ပါ");
 
   if (errors.length > 0) return fail(fullName, phonePrimary);
@@ -245,10 +245,10 @@ function validateRow(
     phoneSecondary: raw.phoneSecondary
       ? normalizeImportPhone(raw.phoneSecondary, country.isDomestic)
       : null,
-    viber: raw.viber ? raw.viber.trim() : null,
-    telegram: raw.telegram ? raw.telegram.trim() : null,
+    viber: raw.viber ? toWesternDigits(raw.viber).trim() : null,
+    telegram: raw.telegram ? toWesternDigits(raw.telegram).trim() : null,
     email: emailRaw || null,
-    facebook: raw.facebook ? raw.facebook.trim() : null,
+    facebook: raw.facebook ? toWesternDigits(raw.facebook).trim() : null,
   };
 
   return { rowNumber, fullName, phonePrimary, status: "ok", errors: [], data };

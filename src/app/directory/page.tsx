@@ -285,14 +285,14 @@ export default function DirectoryPage() {
                   )}
 
                   {(item.viber || item.telegram) && (
-                    <p className="text-xs text-stone-600">
+                    <p className="text-xs text-stone-600 latin-nums">
                       {item.viber ? `Viber: ${item.viber}` : ""}{" "}
                       {item.telegram ? `Telegram: ${item.telegram}` : ""}
                     </p>
                   )}
 
                   {item.email && (
-                    <p className="flex items-center gap-1.5 text-xs text-stone-600">
+                    <p className="flex items-center gap-1.5 text-xs text-stone-600 latin-nums">
                       <Mail className="h-3.5 w-3.5" />
                       <span>{item.email}</span>
                     </p>

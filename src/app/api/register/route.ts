@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const emailRaw = String(body.email || "").trim().toLowerCase();
+    const emailRaw = toWesternDigits(String(body.email || "")).trim().toLowerCase();
     if (emailRaw) {
       const existingEmail = await prisma.user.findUnique({
         where: { loginEmail: emailRaw },
@@ -157,11 +157,11 @@ export async function POST(req: NextRequest) {
           wardOrVillage,
           phonePrimaryEnc: encryptField(phonePrimary)!,
           phoneLookupHash,
-          phoneSecondaryEnc: encryptField(body.phoneSecondary),
-          viberEnc: encryptField(body.viber),
-          telegramEnc: encryptField(body.telegram),
+          phoneSecondaryEnc: encryptField(toWesternDigits(String(body.phoneSecondary || "")).trim()),
+          viberEnc: encryptField(toWesternDigits(String(body.viber || "")).trim()),
+          telegramEnc: encryptField(toWesternDigits(String(body.telegram || "")).trim()),
           emailEnc: encryptField(emailRaw),
-          facebookEnc: encryptField(body.facebook),
+          facebookEnc: encryptField(toWesternDigits(String(body.facebook || "")).trim()),
           // Part (င) visibility choices were removed from the form
           // (admin decision 2026-11-25). Defaults are the old form
           // defaults: phone / Viber / Email hidden on the web, ward

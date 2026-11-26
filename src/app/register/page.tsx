@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { COUNTRIES, MYANMAR_REGIONS } from "@/lib/mimu-locations";
+import { toWesternDigits } from "@/lib/myanmar-utils";
 import { DORMITORY_OTHER, fetchDormitoryNames } from "@/lib/dormitories";
 import { BookOpen, CheckCircle2, Eye, EyeOff, Lock } from "lucide-react";
 
@@ -226,7 +227,7 @@ export default function RegisterPage() {
                   value={form.batchYearDisplay}
                   onChange={(e) => setForm({ ...form, batchYearDisplay: e.target.value })}
                   placeholder="ဥပမာ - ၁၃၆၅ (သို့) မမှတ်မိ"
-                  className="mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
+                  className="latin-nums mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
                 />
                 <label className="mt-2 inline-flex items-center gap-2 text-sm text-stone-600">
                   <input
@@ -277,7 +278,7 @@ export default function RegisterPage() {
                   value={form.stayPeriod}
                   onChange={(e) => setForm({ ...form, stayPeriod: e.target.value })}
                   placeholder="ဥပမာ - ၁၃၆၀ မှ ၁၃၆၅ ထိ"
-                  className="mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
+                  className="latin-nums mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
                 />
               </div>
             </div>
@@ -464,7 +465,9 @@ export default function RegisterPage() {
                 <input
                   type="text"
                   value={form.phoneSecondary}
-                  onChange={(e) => setForm({ ...form, phoneSecondary: e.target.value })}
+                  onChange={(e) =>
+                    setForm({ ...form, phoneSecondary: toWesternDigits(e.target.value) })
+                  }
                   placeholder="ရွေးချယ်"
                   className="latin-nums mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
                 />
@@ -477,8 +480,8 @@ export default function RegisterPage() {
                 <input
                   type="text"
                   value={form.viber}
-                  onChange={(e) => setForm({ ...form, viber: e.target.value })}
-                  className="mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
+                  onChange={(e) => setForm({ ...form, viber: toWesternDigits(e.target.value) })}
+                  className="latin-nums mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
                 />
               </div>
               <div>
@@ -486,9 +489,9 @@ export default function RegisterPage() {
                 <input
                   type="text"
                   value={form.telegram}
-                  onChange={(e) => setForm({ ...form, telegram: e.target.value })}
+                  onChange={(e) => setForm({ ...form, telegram: toWesternDigits(e.target.value) })}
                   placeholder="@username"
-                  className="mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
+                  className="latin-nums mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
                 />
               </div>
             </div>
@@ -499,8 +502,8 @@ export default function RegisterPage() {
                 <input
                   type="email"
                   value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
+                  onChange={(e) => setForm({ ...form, email: toWesternDigits(e.target.value) })}
+                  className="latin-nums mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
                 />
               </div>
               <div>
@@ -508,8 +511,8 @@ export default function RegisterPage() {
                 <input
                   type="text"
                   value={form.facebook}
-                  onChange={(e) => setForm({ ...form, facebook: e.target.value })}
-                  className="mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
+                  onChange={(e) => setForm({ ...form, facebook: toWesternDigits(e.target.value) })}
+                  className="latin-nums mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
                 />
               </div>
             </div>

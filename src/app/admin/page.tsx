@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { COUNTRIES } from "@/lib/mimu-locations";
 import { DORMITORY_OTHER } from "@/lib/dormitories";
+import { toWesternDigits } from "@/lib/myanmar-utils";
 import ExcelImport from "@/components/ExcelImport";
 import AdminBackup from "@/components/AdminBackup";
 
@@ -1310,7 +1311,7 @@ export default function AdminDashboardPage() {
                   <label className={lbl}>ဖုန်း (ဒုတိယ)</label>
                   <input
                     value={editForm.phoneSecondary}
-                    onChange={(e) => setEdit({ phoneSecondary: e.target.value })}
+                    onChange={(e) => setEdit({ phoneSecondary: toWesternDigits(e.target.value) })}
                     className={`${inp} latin-nums`}
                   />
                 </div>
@@ -1318,32 +1319,32 @@ export default function AdminDashboardPage() {
                   <label className={lbl}>Viber</label>
                   <input
                     value={editForm.viber}
-                    onChange={(e) => setEdit({ viber: e.target.value })}
-                    className={inp}
+                    onChange={(e) => setEdit({ viber: toWesternDigits(e.target.value) })}
+                    className={`${inp} latin-nums`}
                   />
                 </div>
                 <div>
                   <label className={lbl}>Telegram</label>
                   <input
                     value={editForm.telegram}
-                    onChange={(e) => setEdit({ telegram: e.target.value })}
-                    className={inp}
+                    onChange={(e) => setEdit({ telegram: toWesternDigits(e.target.value) })}
+                    className={`${inp} latin-nums`}
                   />
                 </div>
                 <div>
                   <label className={lbl}>Email</label>
                   <input
                     value={editForm.email}
-                    onChange={(e) => setEdit({ email: e.target.value })}
-                    className={inp}
+                    onChange={(e) => setEdit({ email: toWesternDigits(e.target.value) })}
+                    className={`${inp} latin-nums`}
                   />
                 </div>
                 <div>
                   <label className={lbl}>Facebook</label>
                   <input
                     value={editForm.facebook}
-                    onChange={(e) => setEdit({ facebook: e.target.value })}
-                    className={inp}
+                    onChange={(e) => setEdit({ facebook: toWesternDigits(e.target.value) })}
+                    className={`${inp} latin-nums`}
                   />
                 </div>
                 <div className="sm:col-span-2">

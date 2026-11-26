@@ -239,7 +239,7 @@ export async function POST(req: NextRequest) {
         : countryObj?.nameMm || norm(f.countryName) || "မြန်မာ";
 
     const newPhoneHash = hmacLookup(normalizePhoneForHash(phonePrimary));
-    const emailRaw = str(f.email).trim().toLowerCase();
+    const emailRaw = toWesternDigits(str(f.email)).trim().toLowerCase();
     const oldEmail = decryptField(existing.emailEnc) || "";
 
     // Phone / email are also the login identifiers: refuse if another
@@ -304,11 +304,11 @@ export async function POST(req: NextRequest) {
       wardOrVillage: normOrNull(f.wardOrVillage),
       phonePrimaryEnc: encryptField(phonePrimary),
       phoneLookupHash: newPhoneHash,
-      phoneSecondaryEnc: encryptField(str(f.phoneSecondary)),
-      viberEnc: encryptField(str(f.viber)),
-      telegramEnc: encryptField(str(f.telegram)),
+      phoneSecondaryEnc: encryptField(toWesternDigits(str(f.phoneSecondary)).trim()),
+      viberEnc: encryptField(toWesternDigits(str(f.viber)).trim()),
+      telegramEnc: encryptField(toWesternDigits(str(f.telegram)).trim()),
       emailEnc: encryptField(emailRaw),
-      facebookEnc: encryptField(str(f.facebook)),
+      facebookEnc: encryptField(toWesternDigits(str(f.facebook)).trim()),
       showPhoneWeb: Boolean(f.showPhoneWeb),
       showViberTgWeb: Boolean(f.showViberTgWeb),
       showEmailFbWeb: Boolean(f.showEmailFbWeb),
