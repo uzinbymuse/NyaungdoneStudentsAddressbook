@@ -56,10 +56,10 @@ export function Navbar() {
             className="h-11 w-11 shrink-0 object-contain"
           />
           <div>
-            <div className="text-base font-bold leading-normal text-stone-900">
+            <div className="text-base font-bold leading-[1.7] text-stone-900">
               ပါဠိတက္ကသိုလ် ညောင်တုန်းကျောင်းတိုက်
             </div>
-            <div className="mt-1 text-xs leading-relaxed text-amber-800">ဗဟန်း-ညောင်တုန်းနွယ်ဖွား လိပ်စာမှတ်တမ်း</div>
+            <div className="mt-2 text-xs leading-relaxed text-amber-800">ဗဟန်း-ညောင်တုန်းနွယ်ဖွား လိပ်စာမှတ်တမ်း</div>
           </div>
         </Link>
 
