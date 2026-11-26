@@ -11,11 +11,16 @@ export default async function HomePage() {
   let international = 0;
 
   try {
-    [verified, domestic, international] = await Promise.all([
-      prisma.alumniProfile.count({ where: { profileStatus: "VERIFIED" } }),
-      prisma.alumniProfile.count({ where: { profileStatus: "VERIFIED", isDomestic: true } }),
-      prisma.alumniProfile.count({ where: { profileStatus: "VERIFIED", isDomestic: false } }),
-    ]);
+    const groups = await prisma.alumniProfile.groupBy({
+      by: ["isDomestic"],
+      where: { profileStatus: "VERIFIED" },
+      _count: { _all: true },
+    });
+    for (const g of groups) {
+      if (g.isDomestic) domestic = g._count._all;
+      else international = g._count._all;
+    }
+    verified = domestic + international;
   } catch {
     // Fallback if DB is not reachable during static check
   }

@@ -401,7 +401,7 @@ export async function applyRestore(
         })),
       });
     }
-  });
+  }, { timeout: 30000 });
 
   return { counts: data.counts, snapshotAt };
 }

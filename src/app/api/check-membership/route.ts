@@ -54,9 +54,17 @@ export async function POST(req: NextRequest) {
       profile.profileStatus === "PENDING" ||
       profile.profileStatus === "NEEDS_CORRECTION"
     ) {
+      const rawName = (profile.fullName || "").trim();
+      const chars = Array.from(rawName);
+      const maskedName =
+        chars.length <= 3
+          ? chars.length > 0
+            ? `${chars[0]}***`
+            : undefined
+          : `${chars.slice(0, 3).join("")}***${chars[chars.length - 1]}`;
       return NextResponse.json({
         status: profile.profileStatus,
-        name: profile.fullName || undefined,
+        name: maskedName,
       });
     }
     return NextResponse.json({ status: "NOT_FOUND" });

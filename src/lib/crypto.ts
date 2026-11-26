@@ -12,11 +12,24 @@ function getEncryptionKey(): Buffer {
 }
 
 function getHashSalt(): string {
-  return process.env.HASH_SALT || "default-dev-salt-change-in-production";
+  const salt = process.env.HASH_SALT;
+  if (!salt) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("HASH_SALT must be configured in production.");
+    }
+    return "default-dev-salt-change-in-production";
+  }
+  return salt;
 }
 
 function getAuthSecret(): Uint8Array {
-  const secret = process.env.AUTH_SECRET || "default-dev-auth-secret-change-in-production";
+  const secret = process.env.AUTH_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("AUTH_SECRET must be configured in production.");
+    }
+    return new TextEncoder().encode("default-dev-auth-secret-change-in-production");
+  }
   return new TextEncoder().encode(secret);
 }
 

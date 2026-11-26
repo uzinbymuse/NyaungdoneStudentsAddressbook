@@ -115,95 +115,120 @@ export async function POST(req: NextRequest) {
     const batchYearMm = batchDigits ? parseInt(batchDigits[0], 10) : null;
 
     const passwordHash = await hashPassword(password);
-    const alumniCode = await generateNextAlumniCode();
 
     const monkOrLay = ["MONK", "LAY", "NUN", "OTHER"].includes(body.monkOrLay)
       ? body.monkOrLay
       : "MONK";
 
-    const result = await prisma.$transaction(async (tx) => {
-      const user = await tx.user.create({
-        data: {
-          loginPhoneHash: phoneLookupHash,
-          loginEmail: emailRaw || null,
-          passwordHash,
-          role: "MEMBER",
-          accountStatus: "ACTIVE",
-        },
-      });
+    let result: { user: { id: string }; profile: { id: string; alumniCode: string } } | null = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const alumniCode = await generateNextAlumniCode();
+      try {
+        result = await prisma.$transaction(async (tx) => {
+          const user = await tx.user.create({
+            data: {
+              loginPhoneHash: phoneLookupHash,
+              loginEmail: emailRaw || null,
+              passwordHash,
+              role: "MEMBER",
+              accountStatus: "ACTIVE",
+            },
+          });
 
-      const profile = await tx.alumniProfile.create({
-        data: {
-          userId: user.id,
-          alumniCode,
-          monkOrLay,
-          fullName,
-          normalizedName: buildSearchNameKey(fullName),
-          formerName: body.formerName ? normalizeMyanmarText(String(body.formerName)) : null,
-          birthplace,
-          degreeName: degreeName || null,
-          batchYearMm,
-          batchYearDisplay,
-          batchYearApprox: Boolean(body.batchYearApprox),
-          dormitory,
-          stayPeriod: body.stayPeriod ? normalizeMyanmarText(String(body.stayPeriod)) : null,
-          currentRoleOrMonastery,
-          currentMonastery: currentMonastery || null,
-          messageToAlumni: body.messageToAlumni
-            ? normalizeMyanmarText(String(body.messageToAlumni))
-            : null,
-          countryCode,
-          countryName,
-          isDomestic,
-          region,
-          township,
-          city: isDomestic ? township || "" : city,
-          wardOrVillage,
-          phonePrimaryEnc: encryptField(phonePrimary)!,
-          phoneLookupHash,
-          phoneSecondaryEnc: encryptField(toWesternDigits(String(body.phoneSecondary || "")).trim()),
-          viberEnc: encryptField(toWesternDigits(String(body.viber || "")).trim()),
-          telegramEnc: encryptField(toWesternDigits(String(body.telegram || "")).trim()),
-          emailEnc: encryptField(emailRaw),
-          facebookEnc: encryptField(toWesternDigits(String(body.facebook || "")).trim()),
-          // Part (င) visibility choices were removed from the form
-          // (admin decision 2026-11-25). Defaults are the old form
-          // defaults: phone / Viber / Email hidden on the web, ward
-          // shown on web and in print. The member can change all of
-          // these later on their Profile page.
-          showPhoneWeb: false,
-          showViberTgWeb: false,
-          showEmailFbWeb: false,
-          showWardWeb: true,
-          showPhonePrint: true, // phone is always in the print book (admin decision 2026-11-25); a member can turn it off on their Profile page
-          showWardPrint: true,
-          adminNote: body.adminNote ? normalizeMyanmarText(String(body.adminNote)) : null,
-          referrerName: body.referrerName ? normalizeMyanmarText(String(body.referrerName)) : null,
-          bestContactTime: body.bestContactTime
-            ? normalizeMyanmarText(String(body.bestContactTime))
-            : null,
-          printExclusionNote: body.printExclusionNote
-            ? normalizeMyanmarText(String(body.printExclusionNote))
-            : null,
-          profileStatus: "PENDING",
-          consents: {
-            // Registration implies agreement: web directory + print
-            // book are granted (so no alumnus is left out of the book),
-            // and phone is included in the print book too (admin
-            // decision 2026-11-25). The member can change both later
-            // on their Profile page.
-            create: [
-              { consentType: "POLICY_AGREED", granted: true },
-              { consentType: "WEB_DIRECTORY", granted: true },
-              { consentType: "BOOK_PUBLICATION", granted: true },
-              { consentType: "BOOK_PHONE", granted: true },
-            ],
-          },
-        },
-      });
+          const profile = await tx.alumniProfile.create({
+            data: {
+              userId: user.id,
+              alumniCode,
+              monkOrLay,
+              fullName,
+              normalizedName: buildSearchNameKey(fullName),
+              formerName: body.formerName ? normalizeMyanmarText(String(body.formerName)) : null,
+              birthplace,
+              degreeName: degreeName || null,
+              batchYearMm,
+              batchYearDisplay,
+              batchYearApprox: Boolean(body.batchYearApprox),
+              dormitory,
+              stayPeriod: body.stayPeriod ? normalizeMyanmarText(String(body.stayPeriod)) : null,
+              currentRoleOrMonastery,
+              currentMonastery: currentMonastery || null,
+              messageToAlumni: body.messageToAlumni
+                ? normalizeMyanmarText(String(body.messageToAlumni))
+                : null,
+              countryCode,
+              countryName,
+              isDomestic,
+              region,
+              township,
+              city: isDomestic ? township || "" : city,
+              wardOrVillage,
+              phonePrimaryEnc: encryptField(phonePrimary)!,
+              phoneLookupHash,
+              phoneSecondaryEnc: encryptField(toWesternDigits(String(body.phoneSecondary || "")).trim()),
+              viberEnc: encryptField(toWesternDigits(String(body.viber || "")).trim()),
+              telegramEnc: encryptField(toWesternDigits(String(body.telegram || "")).trim()),
+              emailEnc: encryptField(emailRaw),
+              facebookEnc: encryptField(toWesternDigits(String(body.facebook || "")).trim()),
+              // Part (င) visibility choices were removed from the form
+              // (admin decision 2026-11-25). Defaults are the old form
+              // defaults: phone / Viber / Email hidden on the web, ward
+              // shown on web and in print. The member can change all of
+              // these later on their Profile page.
+              showPhoneWeb: false,
+              showViberTgWeb: false,
+              showEmailFbWeb: false,
+              showWardWeb: true,
+              showPhonePrint: true, // phone is always in the print book (admin decision 2026-11-25); a member can turn it off on their Profile page
+              showWardPrint: true,
+              adminNote: body.adminNote ? normalizeMyanmarText(String(body.adminNote)) : null,
+              referrerName: body.referrerName ? normalizeMyanmarText(String(body.referrerName)) : null,
+              bestContactTime: body.bestContactTime
+                ? normalizeMyanmarText(String(body.bestContactTime))
+                : null,
+              printExclusionNote: body.printExclusionNote
+                ? normalizeMyanmarText(String(body.printExclusionNote))
+                : null,
+              profileStatus: "PENDING",
+              consents: {
+                // Registration implies agreement: web directory + print
+                // book are granted (so no alumnus is left out of the book),
+                // and phone is included in the print book too (admin
+                // decision 2026-11-25). The member can change both later
+                // on their Profile page.
+                create: [
+                  { consentType: "POLICY_AGREED", granted: true },
+                  { consentType: "WEB_DIRECTORY", granted: true },
+                  { consentType: "BOOK_PUBLICATION", granted: true },
+                  { consentType: "BOOK_PHONE", granted: true },
+                ],
+              },
+            },
+          });
 
-      return { user, profile };
-    });
+          return { user, profile };
+        });
+        break;
+      } catch (txErr: unknown) {
+        const errObj = txErr as { code?: string; meta?: { target?: string[] } };
+        if (errObj?.code === "P2002") {
+          const target = errObj.meta?.target || [];
+          if (target.includes("loginPhoneHash") || target.includes("loginEmail")) {
+            return NextResponse.json(
+              { error: "ဤဖုန်းနံပါတ် (သို့) အီးမေးလ်ဖြင့် စာရင်းသွင်းပြီးသား ဖြစ်နေပါသည်။ Login ဝင်၍ စစ်ဆေးပါ။" },
+              { status: 409 }
+            );
+          }
+          if (target.includes("alumniCode") && attempt < 2) {
+            continue;
+          }
+        }
+        throw txErr;
+      }
+    }
+
+    if (!result) {
+      throw new Error("Could not generate unique alumniCode");
+    }
 
     await setSessionCookie({
       userId: result.user.id,

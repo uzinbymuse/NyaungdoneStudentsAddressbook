@@ -11,6 +11,22 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="my" className="h-full antialiased">
+      <head>
+        <link
+          rel="preload"
+          href="/fonts/Pyidaungsu-2.5.3-Regular.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preload"
+          href="/fonts/Pyidaungsu-2.5.3-Numbers.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+      </head>
       <body className="min-h-full flex flex-col bg-[#faf8f5] text-stone-900">
         {/* Faint logo watermark behind every page (hidden when printing) */}
         <div

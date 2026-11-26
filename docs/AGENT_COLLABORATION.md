@@ -54,3 +54,4 @@
 | 2026-11-25 | Agent A | Phase 1 MVP + Neon Schema + Seed + Vercel Guide + Burmese README | ပြီးစီး |
 | 2026-11-25 | Agent B | PR #1: Admin Edit Modal + DB-managed Dormitory Table & Tab | ပြီးစီး (Agent A မှ `db push` လုပ်ပြီး) |
 | 2026-11-25 | Agent B | Commit `cba301e`: Excel `.xlsx` Import (`xlsx-mini`), 60-day Temp PIN, `/set-pin`, Membership Check, Change Credentials/Password | ပြီးစီး (Agent A မှ `db push` + Build 30/30 စစ်ဆေးပြီး) |
+| 2026-11-26 | Agent A | Part 1 Hardening: Fail-closed prod secrets, `mustChangePin` API guard, masked `check-membership`, CSV injection guard, 30s restore timeout, `alumniCode` retry, rate-limit cleanup, Pyidaungsu font preload, Home `groupBy` query | မလိုအပ်ပါ (Build စစ်ဆေးပြီး) |

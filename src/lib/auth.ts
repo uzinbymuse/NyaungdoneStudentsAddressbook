@@ -80,7 +80,7 @@ export async function requireAuthenticated(): Promise<SessionPayload | null> {
 
 export async function requireVerifiedMember(): Promise<SessionPayload | null> {
   const session = await getCurrentSession();
-  if (!session) return null;
+  if (!session || session.mustChangePin) return null;
   if (session.role === "ADMIN" || session.profileStatus === "VERIFIED") {
     return session;
   }
@@ -89,6 +89,6 @@ export async function requireVerifiedMember(): Promise<SessionPayload | null> {
 
 export async function requireAdmin(): Promise<SessionPayload | null> {
   const session = await getCurrentSession();
-  if (!session || session.role !== "ADMIN") return null;
+  if (!session || session.mustChangePin || session.role !== "ADMIN") return null;
   return session;
 }

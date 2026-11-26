@@ -167,6 +167,7 @@ export default function AdminDashboardPage() {
   const [csvText, setCsvText] = useState("");
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
+  const [actionBusy, setActionBusy] = useState(false);
 
   // Dormitory list management (admin-managed, DB-backed; may be empty)
   const [dormitories, setDormitories] = useState<DormitoryItem[]>([]);
@@ -279,20 +280,26 @@ export default function AdminDashboardPage() {
   }
 
   async function runAlumniAction(payload: Record<string, unknown>) {
+    if (actionBusy) return;
+    setActionBusy(true);
     setNotice("");
-    const res = await fetch("/api/admin/alumni", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json();
-    if (res.ok) {
-      if (data.magicLink) {
-        setMagicLinkOutput(data.magicLink);
-      } else {
-        setNotice("ဆောင်ရွက်ချက် အောင်မြင်ပါသည်။");
+    try {
+      const res = await fetch("/api/admin/alumni", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        if (data.magicLink) {
+          setMagicLinkOutput(data.magicLink);
+        } else {
+          setNotice("ဆောင်ရွက်ချက် အောင်မြင်ပါသည်။");
+        }
+        loadDashboard();
       }
-      loadDashboard();
+    } finally {
+      setActionBusy(false);
     }
   }
 
@@ -455,7 +462,11 @@ export default function AdminDashboardPage() {
           r.wardOrVillage || "",
           r.phone || "",
         ]
-          .map((v) => `"${String(v).replace(/"/g, '""')}"`)
+          .map((v) => {
+            const str = String(v);
+            const safe = /^[=+\-@\t\r]/.test(str) ? `'${str}` : str;
+            return `"${safe.replace(/"/g, '""')}"`;
+          })
           .join(",")
       ),
     ];

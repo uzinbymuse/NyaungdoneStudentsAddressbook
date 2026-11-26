@@ -20,6 +20,8 @@ export async function GET(req: NextRequest) {
     );
   }
 
+  try {
+
   const rl = checkRateLimit(`dir:${session.userId}`, 30, 60 * 1000);
   if (!rl.allowed) {
     return NextResponse.json(
@@ -106,4 +108,11 @@ export async function GET(req: NextRequest) {
   });
 
   return NextResponse.json({ results, maxLimit: 20 });
+  } catch (err) {
+    console.error("Directory error:", err);
+    return NextResponse.json(
+      { error: "စာရင်းရှာဖွေရာတွင် အမှားအယွင်း ဖြစ်ပွားပါသည်။" },
+      { status: 500 }
+    );
+  }
 }
