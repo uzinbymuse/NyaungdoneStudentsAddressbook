@@ -31,7 +31,7 @@ export default async function HomePage() {
         />
         <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-amber-100 px-4 py-1.5 text-sm font-semibold text-amber-900">
           <Shield className="h-4 w-4" />
-          <span>ဗဟန်း-ညောင်တုန်းနွယ်ဖွားသာ ဝင်ရောက်နိုင်သော Privacy-First စနစ်</span>
+          <span>ဗဟန်း-ညောင်တုန်းနွယ်ဖွားများအတွက်သာ</span>
         </div>
 
         <h1 className="mt-5 text-3xl font-bold tracking-tight text-stone-900 sm:text-4xl">
