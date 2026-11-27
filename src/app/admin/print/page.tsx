@@ -68,12 +68,15 @@ export default async function AdminPrintBookPage() {
               <div className="font-bold">
                 [{p.alumniCode}] {p.fullName}
                 {p.degreeName ? ` (${p.degreeName})` : ""}
-                {p.birthplace ? ` · မွေးဇာတိ: ${p.birthplace}` : ""} — {p.batchYearDisplay}
+                {p.birthplace ? ` · မွေးဇာတိ: ${p.birthplace}` : ""}
+                {p.batchYearDisplay && p.batchYearDisplay !== "မသတ်မှတ်" ? ` — ${p.batchYearDisplay}` : ""}
               </div>
               <div className="text-stone-700">
-                {p.dormitory}
-                {p.currentMonastery ? ` · ${p.currentMonastery}` : ""} ·{" "}
-                {p.currentRoleOrMonastery}
+                {dedupeAddressParts([
+                  p.dormitory !== "မသတ်မှတ်" ? p.dormitory : null,
+                  p.currentMonastery,
+                  p.currentRoleOrMonastery,
+                ]).join(" · ")}
               </div>
               <div className="text-stone-700">
                 {dedupeAddressParts([
@@ -104,12 +107,15 @@ export default async function AdminPrintBookPage() {
               <div className="font-bold">
                 [{p.alumniCode}] {p.fullName}
                 {p.degreeName ? ` (${p.degreeName})` : ""}
-                {p.birthplace ? ` · မွေးဇာတိ: ${p.birthplace}` : ""} — {p.batchYearDisplay}
+                {p.birthplace ? ` · မွေးဇာတိ: ${p.birthplace}` : ""}
+                {p.batchYearDisplay && p.batchYearDisplay !== "မသတ်မှတ်" ? ` — ${p.batchYearDisplay}` : ""}
               </div>
               <div className="text-stone-700">
-                {p.dormitory}
-                {p.currentMonastery ? ` · ${p.currentMonastery}` : ""} ·{" "}
-                {p.currentRoleOrMonastery}
+                {dedupeAddressParts([
+                  p.dormitory !== "မသတ်မှတ်" ? p.dormitory : null,
+                  p.currentMonastery,
+                  p.currentRoleOrMonastery,
+                ]).join(" · ")}
               </div>
               <div className="text-stone-700">
                 {dedupeAddressParts([

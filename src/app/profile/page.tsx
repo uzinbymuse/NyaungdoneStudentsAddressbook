@@ -350,12 +350,17 @@ export default function ProfilePage() {
             <p className="font-bold">
               [{profile.alumniCode}] {profile.fullName}
               {profile.degreeName ? ` (${profile.degreeName})` : ""}
-              {profile.birthplace ? ` · မွေးဇာတိ: ${profile.birthplace}` : ""} — {profile.batchYearDisplay}
+              {profile.birthplace ? ` · မွေးဇာတိ: ${profile.birthplace}` : ""}
+              {profile.batchYearDisplay && profile.batchYearDisplay !== "မသတ်မှတ်"
+                ? ` — ${profile.batchYearDisplay}`
+                : ""}
             </p>
             <p className="mt-1">
-              {profile.dormitory}
-              {profile.currentMonastery ? ` · ${profile.currentMonastery}` : ""} ·{" "}
-              {profile.currentRoleOrMonastery}
+              {dedupeAddressParts([
+                profile.dormitory !== "မသတ်မှတ်" ? profile.dormitory : null,
+                profile.currentMonastery,
+                profile.currentRoleOrMonastery,
+              ]).join(" · ")}
             </p>
             <p className="mt-1">
               {dedupeAddressParts([

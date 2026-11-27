@@ -282,6 +282,33 @@ export default function RegisterPage() {
 
             <div>
               <label className="block text-base font-semibold text-stone-800">
+                နေခဲ့ဖူးသည့် ကျောင်းဆောင် <span className="text-red-600">*</span>
+              </label>
+              <select
+                value={form.dormitory}
+                onChange={(e) => setForm({ ...form, dormitory: e.target.value })}
+                className="mt-1.5 w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-base"
+              >
+                {[...dormitoryOptions, DORMITORY_OTHER].map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </select>
+              {form.dormitory === DORMITORY_OTHER && (
+                <input
+                  type="text"
+                  required
+                  value={form.dormitoryOther}
+                  onChange={(e) => setForm({ ...form, dormitoryOther: e.target.value })}
+                  placeholder="ကျောင်းဆောင်အမည် ရေးပါ"
+                  className="mt-2 w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-base"
+                />
+              )}
+            </div>
+
+            <div>
+              <label className="block text-base font-semibold text-stone-800">
                 သီတင်းသုံးရာကျောင်း <span className="text-red-600">*</span>
               </label>
               <input
@@ -435,45 +462,17 @@ export default function RegisterPage() {
                   </div>
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="block text-base font-semibold text-stone-800">
-                      နေခဲ့သော ကျောင်းဆောင်
-                    </label>
-                    <select
-                      value={form.dormitory}
-                      onChange={(e) => setForm({ ...form, dormitory: e.target.value })}
-                      className="mt-1.5 w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-base"
-                    >
-                      {[...dormitoryOptions, DORMITORY_OTHER].map((d) => (
-                        <option key={d} value={d}>
-                          {d}
-                        </option>
-                      ))}
-                    </select>
-                    {form.dormitory === DORMITORY_OTHER && (
-                      <input
-                        type="text"
-                        value={form.dormitoryOther}
-                        onChange={(e) => setForm({ ...form, dormitoryOther: e.target.value })}
-                        placeholder="ကျောင်းဆောင်အမည် ရေးပါ (ရွေးချယ်)"
-                        className="mt-2 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
-                      />
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-base font-semibold text-stone-800">
-                      ကျောင်းတွင် နေခဲ့သော ခုနှစ် (မှ — အထိ)
-                    </label>
-                    <input
-                      type="text"
-                      value={form.stayPeriod}
-                      onChange={(e) => setForm({ ...form, stayPeriod: e.target.value })}
-                      placeholder="ဥပမာ - ၁၃၆၀ မှ ၁၃၆၅ ထိ"
-                      className="latin-nums mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-base font-semibold text-stone-800">
+                    ကျောင်းတွင် နေခဲ့သော ခုနှစ် (မှ — အထိ)
+                  </label>
+                  <input
+                    type="text"
+                    value={form.stayPeriod}
+                    onChange={(e) => setForm({ ...form, stayPeriod: e.target.value })}
+                    placeholder="ဥပမာ - ၁၃၆၀ မှ ၁၃၆၅ ထိ"
+                    className="latin-nums mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
+                  />
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">

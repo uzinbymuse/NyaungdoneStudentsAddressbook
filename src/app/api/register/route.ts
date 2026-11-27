@@ -36,10 +36,10 @@ export async function POST(req: NextRequest) {
     const batchYearDisplayRaw = normalizeMyanmarText(String(body.batchYearDisplay || ""));
     const batchYearDisplay = batchYearDisplayRaw || "မသတ်မှတ်";
     const dormitoryRaw = normalizeMyanmarText(String(body.dormitory || ""));
-    const dormitory = dormitoryRaw && dormitoryRaw !== "အခြား" ? dormitoryRaw : "မသတ်မှတ်";
+    const dormitory = dormitoryRaw && dormitoryRaw !== "အခြား" ? dormitoryRaw : "";
     const currentMonastery = normalizeMyanmarText(String(body.currentMonastery || ""));
     const currentRoleOrMonastery =
-      normalizeMyanmarText(String(body.currentRoleOrMonastery || "")) || currentMonastery;
+      normalizeMyanmarText(String(body.currentRoleOrMonastery || "")) || "";
     const phonePrimary = toWesternDigits(String(body.phonePrimary || "")).trim();
     const city = normalizeMyanmarText(String(body.city || ""));
     const password = String(body.password || "");
@@ -55,6 +55,7 @@ export async function POST(req: NextRequest) {
     if (
       !fullName ||
       !birthplace ||
+      !dormitory ||
       !currentMonastery ||
       !phonePrimary ||
       !((isDomestic && township) || (!isDomestic && city)) ||
