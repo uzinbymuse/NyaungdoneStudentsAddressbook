@@ -184,7 +184,28 @@ export default function DirectoryPage() {
       )}
 
       {loading ? (
-        <div className="mt-10 text-center text-stone-500">ရှာဖွေနေပါသည်...</div>
+        <div className="mt-6 grid gap-4 md:grid-cols-2">
+          {[0, 1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="rounded-2xl border border-stone-200 bg-white p-6 shadow-xs"
+            >
+              <div className="flex items-start justify-between">
+                <div className="space-y-2">
+                  <div className="h-4 w-20 animate-pulse rounded bg-stone-200" />
+                  <div className="h-6 w-48 animate-pulse rounded bg-stone-200" />
+                  <div className="h-4 w-32 animate-pulse rounded bg-stone-100" />
+                </div>
+                <div className="h-6 w-14 animate-pulse rounded-full bg-amber-100" />
+              </div>
+              <div className="mt-5 space-y-2">
+                <div className="h-4 w-3/4 animate-pulse rounded bg-stone-100" />
+                <div className="h-4 w-2/3 animate-pulse rounded bg-stone-100" />
+                <div className="h-4 w-1/2 animate-pulse rounded bg-stone-100" />
+              </div>
+            </div>
+          ))}
+        </div>
       ) : (
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           {results.map((item) => (

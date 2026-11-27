@@ -146,10 +146,15 @@ export async function GET(req: NextRequest) {
     mapProfile(p, hiddenIds.has(p.id), duplicateIds.has(p.id))
   );
 
+  const byUserId = new Map<string, (typeof lite)[number]>();
+  for (const p of lite) {
+    if (p.userId) byUserId.set(p.userId, p);
+  }
+
   // Members' direct self-edits (Tier 1): who, when, and old -> new per
-  // field. Actor is matched to the profile by userId.
+  // field. Actor is matched to the profile by userId in O(1).
   const selfEdits = selfEditLogs.map((l) => {
-    const p = lite.find((x) => x.userId === l.actorId);
+    const p = l.actorId ? byUserId.get(l.actorId) : undefined;
     const details = (l.details || {}) as {
       changes?: Array<{ field: string; label: string; old: string; new: string }>;
     };
