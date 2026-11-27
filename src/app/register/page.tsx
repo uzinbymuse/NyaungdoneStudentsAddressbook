@@ -5,13 +5,14 @@ import { useRouter } from "next/navigation";
 import { COUNTRIES, MYANMAR_REGIONS } from "@/lib/mimu-locations";
 import { toWesternDigits } from "@/lib/myanmar-utils";
 import { DORMITORY_OTHER, fetchDormitoryNames } from "@/lib/dormitories";
-import { BookOpen, CheckCircle2, Eye, EyeOff, Lock } from "lucide-react";
+import { BookOpen, CheckCircle2, ChevronDown, ChevronUp, Eye, EyeOff, Lock } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showOptional, setShowOptional] = useState(false);
 
   const [form, setForm] = useState({
     monkOrLay: "MONK",
@@ -46,8 +47,6 @@ export default function RegisterPage() {
   const isDomestic = form.countryCode === "MM";
   const townships = MYANMAR_REGIONS[form.region] || [];
 
-  // Dormitory list comes from the database (admin-managed). With an empty
-  // list the form still works: only "အခြား" (free text) is offered.
   const [dormitoryOptions, setDormitoryOptions] = useState<string[]>([]);
   useEffect(() => {
     fetchDormitoryNames().then((names) => {
@@ -73,8 +72,6 @@ export default function RegisterPage() {
 
   function handleCountryChange(code: string) {
     if (code === "MM") {
-      // Back to domestic: restore the Yangon defaults and drop any
-      // foreign city typed earlier (domestic city comes from the township).
       const first = MYANMAR_REGIONS["ရန်ကုန်တိုင်းဒေသကြီး"]?.[0] || "";
       setForm((prev) => ({
         ...prev,
@@ -84,8 +81,6 @@ export default function RegisterPage() {
         city: "",
       }));
     } else {
-      // Foreign: the domestic region/township auto-selects do not apply —
-      // clear them so the stale Yangon defaults (ကမာရွတ်) never leak in.
       setForm((prev) => ({
         ...prev,
         countryCode: code,
@@ -108,7 +103,7 @@ export default function RegisterPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...form,
-          dormitory: finalDorm || form.dormitory,
+          dormitory: finalDorm || "",
         }),
       });
       const data = await res.json();
@@ -141,13 +136,13 @@ export default function RegisterPage() {
         </p>
 
         <p className="mt-2 text-sm font-semibold text-red-700">
-          (*)သင်္ကေတ ပြထားသော အကွက်ကို မဖြစ်မနေ ဖြည့်ပေးပါဘုရား
+          (*) သင်္ကေတ ပြထားသော အကွက်များကိုသာ မဖြစ်မနေ ဖြည့်ပေးပါဘုရား
         </p>
 
         <div className="mt-4 flex items-start gap-3 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
           <BookOpen className="mt-0.5 h-5 w-5 shrink-0" />
           <div>
-            ဘွဲ့၊ မွေးဇာတိမြို့၊ လိပ်စာ၊ နေခဲ့သော ကျောင်းဆောင်၊ ဖုန်းနံပါတ် များကိုသာ Print AddressBook (လိပ်စာစာအုပ်) တွင် ထည့်သွင်းပါမည်။
+            ဘွဲ့၊ မွေးဇာတိမြို့၊ လိပ်စာ၊ သီတင်းသုံးရာကျောင်း၊ ဖုန်းနံပါတ် များကိုသာ Print AddressBook (လိပ်စာစာအုပ်) တွင် ထည့်သွင်းပါမည်။
           </div>
         </div>
 
@@ -157,26 +152,12 @@ export default function RegisterPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-10">
-          {/* Part A */}
-          <section className="space-y-4">
-            <h2 className="border-b border-stone-200 pb-2 text-xl font-bold text-amber-900">
-              အပိုင်း (က) — တင်သူအကြောင်း
+        <form onSubmit={handleSubmit} className="mt-8 space-y-8">
+          {/* Mandatory Section */}
+          <section className="space-y-4 rounded-2xl border border-amber-200 bg-amber-50/30 p-5 sm:p-6">
+            <h2 className="border-b border-amber-200 pb-2 text-xl font-bold text-amber-900">
+              မဖြစ်မနေ ဖြည့်သွင်းရမည့် အချက်အလက်များ
             </h2>
-
-            <div>
-              <label className="block text-base font-semibold text-stone-800">
-                ရဟန်း / လူ ခွဲခြားမှု <span className="text-red-600">*</span>
-              </label>
-              <select
-                value={form.monkOrLay}
-                onChange={(e) => setForm({ ...form, monkOrLay: e.target.value })}
-                className="mt-1.5 w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-base"
-              >
-                <option value="MONK">ရဟန်း / သာမဏေ</option>
-                <option value="LAY">လူဝတ်လဲပြီး (လူပုဂ္ဂိုလ်)</option>
-              </select>
-            </div>
 
             <div>
               <label className="block text-base font-semibold text-stone-800">
@@ -188,20 +169,7 @@ export default function RegisterPage() {
                 value={form.fullName}
                 onChange={(e) => setForm({ ...form, fullName: e.target.value })}
                 placeholder="ဥပမာ - အရှင်ဥတ္တမ (သို့မဟုတ်) ဦးဥတ္တမ"
-                className="mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
-              />
-            </div>
-
-            <div>
-              <label className="block text-base font-semibold text-stone-800">
-                ယခင် အမည် (သံဃာအမည် / လူအမည် ပြောင်းခဲ့လျှင်)
-              </label>
-              <input
-                type="text"
-                value={form.formerName}
-                onChange={(e) => setForm({ ...form, formerName: e.target.value })}
-                placeholder="သူငယ်ချင်းများ မှတ်မိစေရန် (ရွေးချယ်)"
-                className="mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
+                className="mt-1.5 w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-base"
               />
             </div>
 
@@ -215,104 +183,9 @@ export default function RegisterPage() {
                 value={form.birthplace}
                 onChange={(e) => setForm({ ...form, birthplace: e.target.value })}
                 placeholder="ဥပမာ - အရာတော်၊ မုံရွာ"
-                className="mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
+                className="mt-1.5 w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-base"
               />
             </div>
-
-          </section>
-
-          {/* Part B */}
-          <section className="space-y-4">
-            <h2 className="border-b border-stone-200 pb-2 text-xl font-bold text-amber-900">
-              အပိုင်း (ခ) — ကျောင်းတွင် နေခဲ့စဉ်က အချက်များ
-            </h2>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="block text-base font-semibold text-stone-800">
-                  အမြင့်ဆုံး သင်ယူ/အောင်ခဲ့သည့် အတန်း
-                </label>
-                <input
-                  type="text"
-                  value={form.degreeName}
-                  onChange={(e) => setForm({ ...form, degreeName: e.target.value })}
-                  placeholder="ဥပမာ - ကျမ်းပြီး၊ ကျမ်းစွဲ၊ အကြီးတန်း"
-                  className="mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
-                />
-              </div>
-
-              <div>
-                <label className="block text-base font-semibold text-stone-800">
-                  ကျောင်းသို့ရောက်သည့် ခုနှစ် <span className="text-red-600">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={form.batchYearDisplay}
-                  onChange={(e) => setForm({ ...form, batchYearDisplay: e.target.value })}
-                  placeholder="ဥပမာ - ၁၃၆၅ (သို့) မမှတ်မိ"
-                  className="latin-nums mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
-                />
-                <label className="mt-2 inline-flex items-center gap-2 text-sm text-stone-600">
-                  <input
-                    type="checkbox"
-                    checked={form.batchYearApprox}
-                    onChange={(e) => setForm({ ...form, batchYearApprox: e.target.checked })}
-                    className="h-4 w-4 rounded accent-amber-800"
-                  />
-                  <span>ခန့်မှန်းနှစ် ဖြစ်ပါသည် (အတိအကျ မမှတ်မိပါ)</span>
-                </label>
-              </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="block text-base font-semibold text-stone-800">
-                  နေခဲ့သော ကျောင်းဆောင် <span className="text-red-600">*</span>
-                </label>
-                <select
-                  value={form.dormitory}
-                  onChange={(e) => setForm({ ...form, dormitory: e.target.value })}
-                  className="mt-1.5 w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-base"
-                >
-                  {[...dormitoryOptions, DORMITORY_OTHER].map((d) => (
-                    <option key={d} value={d}>
-                      {d}
-                    </option>
-                  ))}
-                </select>
-                {form.dormitory === DORMITORY_OTHER && (
-                  <input
-                    type="text"
-                    required
-                    value={form.dormitoryOther}
-                    onChange={(e) => setForm({ ...form, dormitoryOther: e.target.value })}
-                    placeholder="ကျောင်းဆောင်အမည် ရေးပါ"
-                    className="mt-2 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
-                  />
-                )}
-              </div>
-
-              <div>
-                <label className="block text-base font-semibold text-stone-800">
-                  ကျောင်းတွင် နေခဲ့သော ခုနှစ် (မှ — အထိ)
-                </label>
-                <input
-                  type="text"
-                  value={form.stayPeriod}
-                  onChange={(e) => setForm({ ...form, stayPeriod: e.target.value })}
-                  placeholder="ဥပမာ - ၁၃၆၀ မှ ၁၃၆၅ ထိ"
-                  className="latin-nums mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
-                />
-              </div>
-            </div>
-          </section>
-
-          {/* Part C */}
-          <section className="space-y-4">
-            <h2 className="border-b border-stone-200 pb-2 text-xl font-bold text-amber-900">
-              အပိုင်း (ဂ) — လက်ရှိ နေထိုင်ရာနှင့် လုပ်ငန်း
-            </h2>
 
             <div>
               <label className="block text-base font-semibold text-stone-800">
@@ -336,7 +209,7 @@ export default function RegisterPage() {
                   value={form.countryOther}
                   onChange={(e) => setForm({ ...form, countryOther: e.target.value })}
                   placeholder="နိုင်ငံအမည် ရေးပါ"
-                  className="mt-2 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
+                  className="mt-2 w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-base"
                 />
               )}
             </div>
@@ -377,22 +250,20 @@ export default function RegisterPage() {
                 </div>
               </div>
             ) : (
-              <div>
-                <label className="block text-base font-semibold text-stone-800">
-                  ပြည်နယ် / ဒေသ (ရှိလျှင်)
-                </label>
-                <input
-                  type="text"
-                  value={form.region}
-                  onChange={(e) => setForm({ ...form, region: e.target.value })}
-                  placeholder="ဥပမာ - Bangkok / California"
-                  className="mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
-                />
-              </div>
-            )}
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              {!isDomestic && (
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="block text-base font-semibold text-stone-800">
+                    တိုင်းဒေသကြီး / ပြည်နယ် <span className="text-red-600">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={form.region}
+                    onChange={(e) => setForm({ ...form, region: e.target.value })}
+                    placeholder="ဥပမာ - Bangkok / California"
+                    className="mt-1.5 w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-base"
+                  />
+                </div>
                 <div>
                   <label className="block text-base font-semibold text-stone-800">
                     မြို့နယ်/မြို့ <span className="text-red-600">*</span>
@@ -403,145 +274,41 @@ export default function RegisterPage() {
                     value={form.city}
                     onChange={(e) => setForm({ ...form, city: e.target.value })}
                     placeholder="လက်ရှိ နေထိုင်သော မြို့နယ် / မြို့"
-                    className="mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
+                    className="mt-1.5 w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-base"
                   />
                 </div>
-              )}
-              <div>
-                <label className="block text-base font-semibold text-stone-800">
-                  ရွာ / ရပ်ကွက် (အိမ်အမှတ် မရေးပါနှင့်)
-                </label>
-                <input
-                  type="text"
-                  value={form.wardOrVillage}
-                  onChange={(e) => setForm({ ...form, wardOrVillage: e.target.value })}
-                  placeholder="ရွာ သို့မဟုတ် ရပ်ကွက် အဆင့်သာ"
-                  className="mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
-                />
               </div>
-            </div>
+            )}
 
             <div>
               <label className="block text-base font-semibold text-stone-800">
-                လက်ရှိကျောင်းတိုက်-ကျောင်းဆောင်
-              </label>
-              <input
-                type="text"
-                value={form.currentMonastery}
-                onChange={(e) => setForm({ ...form, currentMonastery: e.target.value })}
-                placeholder="လက်ရှိ သီတင်းသုံးနေသော ကျောင်းတိုက် (ရှိလျှင်)"
-                className="mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
-              />
-            </div>
-
-            <div>
-              <label className="block text-base font-semibold text-stone-800">
-                အလုပ်/တာဝန် <span className="text-red-600">*</span>
+                သီတင်းသုံးရာကျောင်း <span className="text-red-600">*</span>
               </label>
               <input
                 type="text"
                 required
-                value={form.currentRoleOrMonastery}
-                onChange={(e) => setForm({ ...form, currentRoleOrMonastery: e.target.value })}
-                placeholder="ဥပမာ - ကျောင်းထိုင် / စာချ / အလုပ်အကိုင်"
-                className="mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
+                value={form.currentMonastery}
+                onChange={(e) => setForm({ ...form, currentMonastery: e.target.value })}
+                placeholder="လက်ရှိ သီတင်းသုံးနေသော ကျောင်းတိုက် (သို့) နေရာ"
+                className="mt-1.5 w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-base"
               />
             </div>
 
             <div>
               <label className="block text-base font-semibold text-stone-800">
-                ဗဟန်း-ညောင်တုန်းနွယ်ဖွားထံ ပြောလိုသော စကား (အတို)
+                ဖုန်းနံပါတ် (အဓိက) <span className="text-red-600">*</span>
               </label>
-              <textarea
-                rows={2}
-                value={form.messageToAlumni}
-                onChange={(e) => setForm({ ...form, messageToAlumni: e.target.value })}
-                placeholder="သူငယ်ချင်းများ မြင်ရမည့် မှတ်ချက် (Admin ထံ အကြံပေးချက်နှင့် မရောပါနှင့်)"
-                className="mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
+              <input
+                type="text"
+                required
+                value={form.phonePrimary}
+                onChange={(e) => setForm({ ...form, phonePrimary: e.target.value })}
+                placeholder="09... (သို့) +66..."
+                className="latin-nums mt-1.5 w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-base"
               />
             </div>
-          </section>
 
-          {/* Part D */}
-          <section className="space-y-4">
-            <h2 className="border-b border-stone-200 pb-2 text-xl font-bold text-amber-900">
-              အပိုင်း (ဃ) — ဆက်သွယ်ရန်နှင့် Login စကားဝှက်
-            </h2>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="block text-base font-semibold text-stone-800">
-                  ဖုန်းနံပါတ် (အဓိက) <span className="text-red-600">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={form.phonePrimary}
-                  onChange={(e) => setForm({ ...form, phonePrimary: e.target.value })}
-                  placeholder="09... (သို့) +66..."
-                  className="latin-nums mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
-                />
-              </div>
-              <div>
-                <label className="block text-base font-semibold text-stone-800">
-                  ဖုန်းနံပါတ် (အရံ)
-                </label>
-                <input
-                  type="text"
-                  value={form.phoneSecondary}
-                  onChange={(e) =>
-                    setForm({ ...form, phoneSecondary: toWesternDigits(e.target.value) })
-                  }
-                  placeholder="ရွေးချယ်"
-                  className="latin-nums mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="block text-base font-semibold text-stone-800">Viber နံပါတ်</label>
-                <input
-                  type="text"
-                  value={form.viber}
-                  onChange={(e) => setForm({ ...form, viber: toWesternDigits(e.target.value) })}
-                  className="latin-nums mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
-                />
-              </div>
-              <div>
-                <label className="block text-base font-semibold text-stone-800">Telegram ID</label>
-                <input
-                  type="text"
-                  value={form.telegram}
-                  onChange={(e) => setForm({ ...form, telegram: toWesternDigits(e.target.value) })}
-                  placeholder="@username"
-                  className="latin-nums mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="block text-base font-semibold text-stone-800">အီးမေးလ်</label>
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: toWesternDigits(e.target.value) })}
-                  className="latin-nums mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
-                />
-              </div>
-              <div>
-                <label className="block text-base font-semibold text-stone-800">Facebook အမည်/လင့်ခ်</label>
-                <input
-                  type="text"
-                  value={form.facebook}
-                  onChange={(e) => setForm({ ...form, facebook: toWesternDigits(e.target.value) })}
-                  className="latin-nums mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
-                />
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4">
+            <div className="rounded-2xl border border-stone-200 bg-white p-4">
               <label className="block text-base font-semibold text-stone-800">
                 နောင် Login ဝင်ရန် စကားဝှက် (သို့မဟုတ်) ဂဏန်း ၆ လုံး PIN <span className="text-red-600">*</span>
               </label>
@@ -569,24 +336,259 @@ export default function RegisterPage() {
             </div>
           </section>
 
-          {/* Part F */}
-          <section className="space-y-4 rounded-2xl border border-stone-200 bg-stone-50 p-5">
-            <div className="flex items-center gap-2 text-stone-900">
-              <Lock className="h-5 w-5 text-amber-800" />
-              <h2 className="text-lg font-bold">အပိုင်း (စ) — Admin သာ မြင်ရမည့် အချက်များ</h2>
-            </div>
+          {/* Collapsible Optional Section */}
+          <section className="rounded-2xl border border-stone-200 bg-stone-50">
+            <button
+              type="button"
+              onClick={() => setShowOptional(!showOptional)}
+              className="flex w-full items-center justify-between px-5 py-4 text-left"
+              aria-expanded={showOptional}
+            >
+              <div>
+                <div className="text-lg font-bold text-stone-900">
+                  ဖြည့်စွက်လိုက ဖြည့်ရန် (ရွေးချယ်)
+                </div>
+                <div className="text-xs text-stone-600">
+                  ရဟန်း/လူ၊ ယခင်အမည်၊ ကျောင်းဆောင်၊ ခုနှစ်၊ အလုပ်/တာဝန်၊ Viber/Telegram နှင့် Admin မှတ်ချက်
+                </div>
+              </div>
+              <span className="inline-flex items-center gap-1 rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-amber-900 shadow-xs">
+                {showOptional ? (
+                  <>
+                    <span>ခေါက်သိမ်းမည်</span>
+                    <ChevronUp className="h-4 w-4" />
+                  </>
+                ) : (
+                  <>
+                    <span>ဖွင့်ကြည့်မည်</span>
+                    <ChevronDown className="h-4 w-4" />
+                  </>
+                )}
+              </span>
+            </button>
 
-            <div>
-              <label className="block text-sm font-semibold text-stone-800">
-                Admin ထံ သိစေလိုသော အကြံပေးချက်
-              </label>
-              <textarea
-                rows={2}
-                value={form.adminNote}
-                onChange={(e) => setForm({ ...form, adminNote: e.target.value })}
-                className="mt-1 w-full rounded-xl border border-stone-300 bg-white px-3 py-2.5 text-sm"
-              />
-            </div>
+            {showOptional && (
+              <div className="space-y-5 border-t border-stone-200 bg-white p-5 sm:p-6 rounded-b-2xl">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-base font-semibold text-stone-800">
+                      ရဟန်း / လူ ခွဲခြားမှု
+                    </label>
+                    <select
+                      value={form.monkOrLay}
+                      onChange={(e) => setForm({ ...form, monkOrLay: e.target.value })}
+                      className="mt-1.5 w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-base"
+                    >
+                      <option value="MONK">ရဟန်း / သာမဏေ</option>
+                      <option value="LAY">လူဝတ်လဲပြီး (လူပုဂ္ဂိုလ်)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-base font-semibold text-stone-800">
+                      ယခင် အမည် (ပြောင်းခဲ့လျှင်)
+                    </label>
+                    <input
+                      type="text"
+                      value={form.formerName}
+                      onChange={(e) => setForm({ ...form, formerName: e.target.value })}
+                      placeholder="သူငယ်ချင်းများ မှတ်မိစေရန်"
+                      className="mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-base font-semibold text-stone-800">
+                      အမြင့်ဆုံး သင်ယူ/အောင်ခဲ့သည့် အတန်း
+                    </label>
+                    <input
+                      type="text"
+                      value={form.degreeName}
+                      onChange={(e) => setForm({ ...form, degreeName: e.target.value })}
+                      placeholder="ဥပမာ - ကျမ်းပြီး၊ ကျမ်းစွဲ၊ အကြီးတန်း"
+                      className="mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-base font-semibold text-stone-800">
+                      ကျောင်းသို့ရောက်သည့် ခုနှစ်
+                    </label>
+                    <input
+                      type="text"
+                      value={form.batchYearDisplay}
+                      onChange={(e) => setForm({ ...form, batchYearDisplay: e.target.value })}
+                      placeholder="ဥပမာ - ၁၃၆၅ (သို့) မမှတ်မိ"
+                      className="latin-nums mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
+                    />
+                    <label className="mt-2 inline-flex items-center gap-2 text-sm text-stone-600">
+                      <input
+                        type="checkbox"
+                        checked={form.batchYearApprox}
+                        onChange={(e) => setForm({ ...form, batchYearApprox: e.target.checked })}
+                        className="h-4 w-4 rounded accent-amber-800"
+                      />
+                      <span>ခန့်မှန်းနှစ် ဖြစ်ပါသည်</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-base font-semibold text-stone-800">
+                      နေခဲ့သော ကျောင်းဆောင်
+                    </label>
+                    <select
+                      value={form.dormitory}
+                      onChange={(e) => setForm({ ...form, dormitory: e.target.value })}
+                      className="mt-1.5 w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-base"
+                    >
+                      {[...dormitoryOptions, DORMITORY_OTHER].map((d) => (
+                        <option key={d} value={d}>
+                          {d}
+                        </option>
+                      ))}
+                    </select>
+                    {form.dormitory === DORMITORY_OTHER && (
+                      <input
+                        type="text"
+                        value={form.dormitoryOther}
+                        onChange={(e) => setForm({ ...form, dormitoryOther: e.target.value })}
+                        placeholder="ကျောင်းဆောင်အမည် ရေးပါ (ရွေးချယ်)"
+                        className="mt-2 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
+                      />
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-base font-semibold text-stone-800">
+                      ကျောင်းတွင် နေခဲ့သော ခုနှစ် (မှ — အထိ)
+                    </label>
+                    <input
+                      type="text"
+                      value={form.stayPeriod}
+                      onChange={(e) => setForm({ ...form, stayPeriod: e.target.value })}
+                      placeholder="ဥပမာ - ၁၃၆၀ မှ ၁၃၆၅ ထိ"
+                      className="latin-nums mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-base font-semibold text-stone-800">
+                      ရွာ / ရပ်ကွက် (အိမ်အမှတ် မရေးပါနှင့်)
+                    </label>
+                    <input
+                      type="text"
+                      value={form.wardOrVillage}
+                      onChange={(e) => setForm({ ...form, wardOrVillage: e.target.value })}
+                      placeholder="ရွာ သို့မဟုတ် ရပ်ကွက် အဆင့်သာ"
+                      className="mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-base font-semibold text-stone-800">
+                      အလုပ်/တာဝန်
+                    </label>
+                    <input
+                      type="text"
+                      value={form.currentRoleOrMonastery}
+                      onChange={(e) => setForm({ ...form, currentRoleOrMonastery: e.target.value })}
+                      placeholder="ဥပမာ - ကျောင်းထိုင် / စာချ / အလုပ်အကိုင်"
+                      className="mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-base font-semibold text-stone-800">
+                    ဗဟန်း-ညောင်တုန်းနွယ်ဖွားထံ ပြောလိုသော စကား (အတို)
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={form.messageToAlumni}
+                    onChange={(e) => setForm({ ...form, messageToAlumni: e.target.value })}
+                    placeholder="သူငယ်ချင်းများ မြင်ရမည့် မှတ်ချက်"
+                    className="mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
+                  />
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-base font-semibold text-stone-800">
+                      ဖုန်းနံပါတ် (အရံ)
+                    </label>
+                    <input
+                      type="text"
+                      value={form.phoneSecondary}
+                      onChange={(e) =>
+                        setForm({ ...form, phoneSecondary: toWesternDigits(e.target.value) })
+                      }
+                      placeholder="ရွေးချယ်"
+                      className="latin-nums mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-base font-semibold text-stone-800">Viber နံပါတ်</label>
+                    <input
+                      type="text"
+                      value={form.viber}
+                      onChange={(e) => setForm({ ...form, viber: toWesternDigits(e.target.value) })}
+                      className="latin-nums mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-base font-semibold text-stone-800">Telegram ID</label>
+                    <input
+                      type="text"
+                      value={form.telegram}
+                      onChange={(e) => setForm({ ...form, telegram: toWesternDigits(e.target.value) })}
+                      placeholder="@username"
+                      className="latin-nums mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-base font-semibold text-stone-800">အီးမေးလ်</label>
+                    <input
+                      type="email"
+                      value={form.email}
+                      onChange={(e) => setForm({ ...form, email: toWesternDigits(e.target.value) })}
+                      className="latin-nums mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-base font-semibold text-stone-800">
+                      Facebook အမည်/လင့်ခ်
+                    </label>
+                    <input
+                      type="text"
+                      value={form.facebook}
+                      onChange={(e) => setForm({ ...form, facebook: toWesternDigits(e.target.value) })}
+                      className="latin-nums mt-1.5 w-full rounded-xl border border-stone-300 px-4 py-3 text-base"
+                    />
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-stone-200 bg-stone-50 p-4">
+                  <div className="flex items-center gap-2 text-stone-900">
+                    <Lock className="h-4 w-4 text-amber-800" />
+                    <label className="text-sm font-semibold">
+                      Admin ထံ သိစေလိုသော အကြံပေးချက် (Admin သာ မြင်ရမည်)
+                    </label>
+                  </div>
+                  <textarea
+                    rows={2}
+                    value={form.adminNote}
+                    onChange={(e) => setForm({ ...form, adminNote: e.target.value })}
+                    className="mt-2 w-full rounded-xl border border-stone-300 bg-white px-3 py-2 text-sm"
+                  />
+                </div>
+              </div>
+            )}
           </section>
 
           <button
