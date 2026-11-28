@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BookOpen, CheckCircle2, Clock, Edit3, KeyRound } from "lucide-react";
+import { BookOpen, CheckCircle2, ChevronDown, ChevronUp, Clock, Edit3, KeyRound } from "lucide-react";
 import { dedupeAddressParts, toWesternDigits } from "@/lib/myanmar-utils";
 import { COUNTRIES, MYANMAR_REGIONS } from "@/lib/mimu-locations";
 
@@ -82,6 +82,10 @@ export default function ProfilePage() {
   const [pwSuccess, setPwSuccess] = useState("");
   const [pwSaving, setPwSaving] = useState(false);
 
+  const [openSelfEdit, setOpenSelfEdit] = useState(false);
+  const [openCorrection, setOpenCorrection] = useState(false);
+  const [openPassword, setOpenPassword] = useState(false);
+
   async function loadAll() {
     setLoading(true);
     try {
@@ -97,12 +101,13 @@ export default function ProfilePage() {
 
   useEffect(() => {
     loadAll();
-    // Arrived from a successful PIN change (/set-pin) — show a one-time
-    // confirmation, then drop the flag from the URL so a refresh does
-    // not show it again.
-    if (
-      new URLSearchParams(window.location.search).get("pinChanged") === "1"
-    ) {
+    const sp = new URLSearchParams(window.location.search);
+    if (sp.get("registered") === "1") {
+      setNotice(
+        "ဖောင်ဖြည့်တာ အောင်မြင်သွားပါပြီ! ကျေးဇူးတင်ပါသည်ဘုရား။ Admin မှ စစ်ဆေးအတည်ပြုပြီးပါက ကျောင်းသားဟောင်းများ စာရင်းကို ဝင်ရောက်ကြည့်ရှုနိုင်ပါမည်။"
+      );
+      window.history.replaceState(null, "", "/profile");
+    } else if (sp.get("pinChanged") === "1") {
       setNotice(
         "PIN ပြောင်းလဲမှု အောင်မြင်ပါသည်။ PIN အသစ်နဲ့ login ဝင်နိုင်ပါပြီ။"
       );
@@ -388,16 +393,39 @@ export default function ProfilePage() {
       </div>
 
       {/* Direct Self-Edit: contacts + current address + monastery/role */}
-      <div className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
-        <div className="flex items-center gap-2 text-stone-900">
-          <Edit3 className="h-5 w-5 text-amber-800" />
-          <h2 className="text-lg font-bold">ဆက်သွယ်ရန်နှင့် လိပ်စာ ကိုယ်တိုင်ပြင်ရန်</h2>
-        </div>
-        <p className="mt-1 text-xs text-stone-600">
-          ဒီအချက်တွေကို ပြင်လိုက်တာနဲ့ တန်းပြောင်းလဲပါမယ်။ ဖုန်းအဓိက ပြောင်းလိုက်ရင် နောက်တစ်ခါ Login
-          ဝင်တဲ့အခါ ဖုန်းအသစ်နဲ့ ဝင်ရပါမယ်။ ပြောင်းလဲမှုတိုင်းကို Admin က စာရင်းမှာ မြင်ရပါမယ်။
-        </p>
-        <form onSubmit={submitSelfEdit} className="mt-4 grid gap-3 sm:grid-cols-2">
+      <div className="rounded-3xl border border-stone-200 bg-white shadow-sm">
+        <button
+          type="button"
+          onClick={() => setOpenSelfEdit(!openSelfEdit)}
+          className="flex w-full items-center justify-between p-6 text-left"
+          aria-expanded={openSelfEdit}
+        >
+          <div className="flex items-center gap-2 text-stone-900">
+            <Edit3 className="h-5 w-5 text-amber-800" />
+            <h2 className="text-lg font-bold">ဆက်သွယ်ရန်နှင့် လိပ်စာ ကိုယ်တိုင်ပြင်ရန်</h2>
+          </div>
+          <span className="inline-flex items-center gap-1 rounded-lg bg-stone-100 px-3 py-1.5 text-xs font-semibold text-amber-900">
+            {openSelfEdit ? (
+              <>
+                <span>ခေါက်သိမ်းမည်</span>
+                <ChevronUp className="h-4 w-4" />
+              </>
+            ) : (
+              <>
+                <span>ပြင်ဆင်ရန် ဖွင့်မည်</span>
+                <ChevronDown className="h-4 w-4" />
+              </>
+            )}
+          </span>
+        </button>
+
+        {openSelfEdit && (
+          <div className="border-t border-stone-200 px-6 pb-6 pt-4">
+            <p className="text-xs text-stone-600">
+              ဒီအချက်တွေကို ပြင်လိုက်တာနဲ့ တန်းပြောင်းလဲပါမယ်။ ဖုန်းအဓိက ပြောင်းလိုက်ရင် နောက်တစ်ခါ Login
+              ဝင်တဲ့အခါ ဖုန်းအသစ်နဲ့ ဝင်ရပါမယ်။ ပြောင်းလဲမှုတိုင်းကို Admin က စာရင်းမှာ မြင်ရပါမယ်။
+            </p>
+            <form onSubmit={submitSelfEdit} className="mt-4 grid gap-3 sm:grid-cols-2">
           <label className="block text-sm">
             <span className="font-semibold text-stone-800">
               ဖုန်းနံပါတ် (အဓိက) <span className="text-red-600">*</span>
@@ -590,20 +618,45 @@ export default function ProfilePage() {
             {editSuccess}
           </p>
         )}
+          </div>
+        )}
       </div>
 
       {/* Request Correction */}
-      <div className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
-        <div className="flex items-center gap-2 text-stone-900">
-          <Edit3 className="h-5 w-5 text-amber-800" />
-          <h2 className="text-lg font-bold">အမည်/ဘွဲ့ စသည့် အချက်များ ပြင်ဆင်ရန် တောင်းဆိုခြင်း</h2>
-        </div>
-        <p className="mt-1 text-xs text-stone-600">
-          အမည်၊ အမြင့်ဆုံး သင်ယူ/အောင်ခဲ့သည့် အတန်း၊ ကျောင်းသို့ရောက်သည့်ခုနှစ်၊ ကျောင်းဆောင်၊
-          မွေးဇာတိမြို့ — ဒီအချက်တွေကတော့ Admin မှ စစ်ဆေးအတည်ပြုပြီးမှသာ အဓိကမှတ်တမ်းတွင်
-          ပြောင်းလဲပါမည်။ ဆက်သွယ်ရန်နှင့် လိပ်စာကိုတော့ အပေါ်က ဖောင်မှာ ကိုယ်တိုင်တန်း ပြင်နိုင်ပါသည်။
-        </p>
-        <form onSubmit={submitCorrection} className="mt-4 grid gap-3 sm:grid-cols-3">
+      <div className="rounded-3xl border border-stone-200 bg-white shadow-sm">
+        <button
+          type="button"
+          onClick={() => setOpenCorrection(!openCorrection)}
+          className="flex w-full items-center justify-between p-6 text-left"
+          aria-expanded={openCorrection}
+        >
+          <div className="flex items-center gap-2 text-stone-900">
+            <Edit3 className="h-5 w-5 text-amber-800" />
+            <h2 className="text-lg font-bold">အမည်/ဘွဲ့ စသည့် အချက်များ ပြင်ဆင်ရန် တောင်းဆိုခြင်း</h2>
+          </div>
+          <span className="inline-flex items-center gap-1 rounded-lg bg-stone-100 px-3 py-1.5 text-xs font-semibold text-amber-900">
+            {openCorrection ? (
+              <>
+                <span>ခေါက်သိမ်းမည်</span>
+                <ChevronUp className="h-4 w-4" />
+              </>
+            ) : (
+              <>
+                <span>တောင်းဆိုရန် ဖွင့်မည်</span>
+                <ChevronDown className="h-4 w-4" />
+              </>
+            )}
+          </span>
+        </button>
+
+        {openCorrection && (
+          <div className="border-t border-stone-200 px-6 pb-6 pt-4">
+            <p className="text-xs text-stone-600">
+              အမည်၊ အမြင့်ဆုံး သင်ယူ/အောင်ခဲ့သည့် အတန်း၊ ကျောင်းသို့ရောက်သည့်ခုနှစ်၊ ကျောင်းဆောင်၊
+              မွေးဇာတိမြို့ — ဒီအချက်တွေကတော့ Admin မှ စစ်ဆေးအတည်ပြုပြီးမှသာ အဓိကမှတ်တမ်းတွင်
+              ပြောင်းလဲပါမည်။ ဆက်သွယ်ရန်နှင့် လိပ်စာကိုတော့ အပေါ်က ဖောင်မှာ ကိုယ်တိုင်တန်း ပြင်နိုင်ပါသည်။
+            </p>
+            <form onSubmit={submitCorrection} className="mt-4 grid gap-3 sm:grid-cols-3">
           <input
             type="text"
             value={corrFullName}
@@ -653,19 +706,44 @@ export default function ProfilePage() {
             ပြင်ဆင်ချက် တင်ပြမည်
           </button>
         </form>
+          </div>
+        )}
       </div>
 
       {/* Change Login Password */}
-      <div className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
-        <div className="flex items-center gap-2 text-stone-900">
-          <KeyRound className="h-5 w-5 text-amber-800" />
-          <h2 className="text-lg font-bold">Login စကားဝှက် (PIN) ပြောင်းလဲရန်</h2>
-        </div>
-        <p className="mt-1 text-xs text-stone-600">
-          လက်ရှိ စကားဝှက်ကို ထည့်ပြီး အသစ်ပြောင်းနိုင်ပါသည်။ စကားဝှက်အသစ်သည် အနည်းဆုံး စာလုံး ၆ လုံး
-          ရှိရပါမည်။
-        </p>
-        <form onSubmit={submitPasswordChange} className="mt-4 grid gap-3 sm:grid-cols-3">
+      <div className="rounded-3xl border border-stone-200 bg-white shadow-sm">
+        <button
+          type="button"
+          onClick={() => setOpenPassword(!openPassword)}
+          className="flex w-full items-center justify-between p-6 text-left"
+          aria-expanded={openPassword}
+        >
+          <div className="flex items-center gap-2 text-stone-900">
+            <KeyRound className="h-5 w-5 text-amber-800" />
+            <h2 className="text-lg font-bold">Login စကားဝှက် (PIN) ပြောင်းလဲရန်</h2>
+          </div>
+          <span className="inline-flex items-center gap-1 rounded-lg bg-stone-100 px-3 py-1.5 text-xs font-semibold text-amber-900">
+            {openPassword ? (
+              <>
+                <span>ခေါက်သိမ်းမည်</span>
+                <ChevronUp className="h-4 w-4" />
+              </>
+            ) : (
+              <>
+                <span>ပြောင်းလဲရန် ဖွင့်မည်</span>
+                <ChevronDown className="h-4 w-4" />
+              </>
+            )}
+          </span>
+        </button>
+
+        {openPassword && (
+          <div className="border-t border-stone-200 px-6 pb-6 pt-4">
+            <p className="text-xs text-stone-600">
+              လက်ရှိ စကားဝှက်ကို ထည့်ပြီး အသစ်ပြောင်းနိုင်ပါသည်။ စကားဝှက်အသစ်သည် အနည်းဆုံး စာလုံး ၆ လုံး
+              ရှိရပါမည်။
+            </p>
+            <form onSubmit={submitPasswordChange} className="mt-4 grid gap-3 sm:grid-cols-3">
           <input
             type="password"
             value={pwCurrent}
@@ -704,6 +782,8 @@ export default function ProfilePage() {
           <p className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-800">
             {pwSuccess}
           </p>
+        )}
+          </div>
         )}
       </div>
     </div>
