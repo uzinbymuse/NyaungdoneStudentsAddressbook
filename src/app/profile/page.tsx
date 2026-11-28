@@ -82,9 +82,8 @@ export default function ProfilePage() {
   const [pwSuccess, setPwSuccess] = useState("");
   const [pwSaving, setPwSaving] = useState(false);
 
-  const [openSelfEdit, setOpenSelfEdit] = useState(false);
-  const [openCorrection, setOpenCorrection] = useState(false);
-  const [openPassword, setOpenPassword] = useState(false);
+  const [openManageCard, setOpenManageCard] = useState(false);
+  const [manageTab, setManageTab] = useState<"SELF_EDIT" | "CORRECTION" | "PASSWORD">("SELF_EDIT");
 
   async function loadAll() {
     setLoading(true);
@@ -392,40 +391,89 @@ export default function ProfilePage() {
         )}
       </div>
 
-      {/* Direct Self-Edit: contacts + current address + monastery/role */}
+      {/* Combined Collapsible Card: Self-Edit, Request Correction & Change Password */}
       <div className="rounded-3xl border border-stone-200 bg-white shadow-sm">
         <button
           type="button"
-          onClick={() => setOpenSelfEdit(!openSelfEdit)}
+          onClick={() => setOpenManageCard(!openManageCard)}
           className="flex w-full items-center justify-between p-6 text-left"
-          aria-expanded={openSelfEdit}
+          aria-expanded={openManageCard}
         >
-          <div className="flex items-center gap-2 text-stone-900">
-            <Edit3 className="h-5 w-5 text-amber-800" />
-            <h2 className="text-lg font-bold">ဆက်သွယ်ရန်နှင့် လိပ်စာ ကိုယ်တိုင်ပြင်ရန်</h2>
+          <div>
+            <div className="flex items-center gap-2 text-stone-900">
+              <Edit3 className="h-5 w-5 text-amber-800" />
+              <h2 className="text-lg font-bold">
+                အချက်အလက် ပြင်ဆင်ရန် နှင့် စကားဝှက် (PIN) ပြောင်းလဲရန်
+              </h2>
+            </div>
+            <p className="mt-1 text-xs text-stone-500">
+              ဆက်သွယ်ရန်/လိပ်စာ ပြင်ဆင်ခြင်း၊ အမည်/ဘွဲ့ ပြင်ဆင်တောင်းဆိုခြင်းနှင့် PIN ပြောင်းလဲခြင်း
+            </p>
           </div>
-          <span className="inline-flex items-center gap-1 rounded-lg bg-stone-100 px-3 py-1.5 text-xs font-semibold text-amber-900">
-            {openSelfEdit ? (
+          <span className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-stone-100 px-3 py-1.5 text-xs font-semibold text-amber-900">
+            {openManageCard ? (
               <>
                 <span>ခေါက်သိမ်းမည်</span>
                 <ChevronUp className="h-4 w-4" />
               </>
             ) : (
               <>
-                <span>ပြင်ဆင်ရန် ဖွင့်မည်</span>
+                <span>ဖွင့်ကြည့်မည်</span>
                 <ChevronDown className="h-4 w-4" />
               </>
             )}
           </span>
         </button>
 
-        {openSelfEdit && (
+        {openManageCard && (
           <div className="border-t border-stone-200 px-6 pb-6 pt-4">
-            <p className="text-xs text-stone-600">
-              ဒီအချက်တွေကို ပြင်လိုက်တာနဲ့ တန်းပြောင်းလဲပါမယ်။ ဖုန်းအဓိက ပြောင်းလိုက်ရင် နောက်တစ်ခါ Login
-              ဝင်တဲ့အခါ ဖုန်းအသစ်နဲ့ ဝင်ရပါမယ်။ ပြောင်းလဲမှုတိုင်းကို Admin က စာရင်းမှာ မြင်ရပါမယ်။
-            </p>
-            <form onSubmit={submitSelfEdit} className="mt-4 grid gap-3 sm:grid-cols-2">
+            {/* Inner 3-Tab Switcher */}
+            <div className="flex flex-wrap gap-2 border-b border-stone-200 pb-3 text-xs font-semibold sm:text-sm">
+              <button
+                type="button"
+                onClick={() => setManageTab("SELF_EDIT")}
+                className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 ${
+                  manageTab === "SELF_EDIT"
+                    ? "bg-amber-800 text-white"
+                    : "bg-stone-100 text-stone-700 hover:bg-stone-200"
+                }`}
+              >
+                <Edit3 className="h-4 w-4" />
+                <span>ဆက်သွယ်ရန်နှင့် လိပ်စာ</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setManageTab("CORRECTION")}
+                className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 ${
+                  manageTab === "CORRECTION"
+                    ? "bg-amber-800 text-white"
+                    : "bg-stone-100 text-stone-700 hover:bg-stone-200"
+                }`}
+              >
+                <Edit3 className="h-4 w-4" />
+                <span>အမည်/ဘွဲ့ ပြင်ဆင်တောင်းဆို</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setManageTab("PASSWORD")}
+                className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 ${
+                  manageTab === "PASSWORD"
+                    ? "bg-amber-800 text-white"
+                    : "bg-stone-100 text-stone-700 hover:bg-stone-200"
+                }`}
+              >
+                <KeyRound className="h-4 w-4" />
+                <span>စကားဝှက် (PIN) ပြောင်းရန်</span>
+              </button>
+            </div>
+
+            {manageTab === "SELF_EDIT" && (
+              <div className="pt-4">
+                <p className="text-xs text-stone-600">
+                  ဒီအချက်တွေကို ပြင်လိုက်တာနဲ့ တန်းပြောင်းလဲပါမယ်။ ဖုန်းအဓိက ပြောင်းလိုက်ရင် နောက်တစ်ခါ Login
+                  ဝင်တဲ့အခါ ဖုန်းအသစ်နဲ့ ဝင်ရပါမယ်။ ပြောင်းလဲမှုတိုင်းကို Admin က စာရင်းမှာ မြင်ရပါမယ်။
+                </p>
+                <form onSubmit={submitSelfEdit} className="mt-4 grid gap-3 sm:grid-cols-2">
           <label className="block text-sm">
             <span className="font-semibold text-stone-800">
               ဖုန်းနံပါတ် (အဓိက) <span className="text-red-600">*</span>
@@ -613,50 +661,22 @@ export default function ProfilePage() {
             {editError}
           </p>
         )}
-        {editSuccess && (
-          <p className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-800">
-            {editSuccess}
-          </p>
-        )}
-          </div>
-        )}
-      </div>
-
-      {/* Request Correction */}
-      <div className="rounded-3xl border border-stone-200 bg-white shadow-sm">
-        <button
-          type="button"
-          onClick={() => setOpenCorrection(!openCorrection)}
-          className="flex w-full items-center justify-between p-6 text-left"
-          aria-expanded={openCorrection}
-        >
-          <div className="flex items-center gap-2 text-stone-900">
-            <Edit3 className="h-5 w-5 text-amber-800" />
-            <h2 className="text-lg font-bold">အမည်/ဘွဲ့ စသည့် အချက်များ ပြင်ဆင်ရန် တောင်းဆိုခြင်း</h2>
-          </div>
-          <span className="inline-flex items-center gap-1 rounded-lg bg-stone-100 px-3 py-1.5 text-xs font-semibold text-amber-900">
-            {openCorrection ? (
-              <>
-                <span>ခေါက်သိမ်းမည်</span>
-                <ChevronUp className="h-4 w-4" />
-              </>
-            ) : (
-              <>
-                <span>တောင်းဆိုရန် ဖွင့်မည်</span>
-                <ChevronDown className="h-4 w-4" />
-              </>
+                {editSuccess && (
+                  <p className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-800">
+                    {editSuccess}
+                  </p>
+                )}
+              </div>
             )}
-          </span>
-        </button>
 
-        {openCorrection && (
-          <div className="border-t border-stone-200 px-6 pb-6 pt-4">
-            <p className="text-xs text-stone-600">
-              အမည်၊ အမြင့်ဆုံး သင်ယူ/အောင်ခဲ့သည့် အတန်း၊ ကျောင်းသို့ရောက်သည့်ခုနှစ်၊ ကျောင်းဆောင်၊
-              မွေးဇာတိမြို့ — ဒီအချက်တွေကတော့ Admin မှ စစ်ဆေးအတည်ပြုပြီးမှသာ အဓိကမှတ်တမ်းတွင်
-              ပြောင်းလဲပါမည်။ ဆက်သွယ်ရန်နှင့် လိပ်စာကိုတော့ အပေါ်က ဖောင်မှာ ကိုယ်တိုင်တန်း ပြင်နိုင်ပါသည်။
-            </p>
-            <form onSubmit={submitCorrection} className="mt-4 grid gap-3 sm:grid-cols-3">
+            {manageTab === "CORRECTION" && (
+              <div className="pt-4">
+                <p className="text-xs text-stone-600">
+                  အမည်၊ အမြင့်ဆုံး သင်ယူ/အောင်ခဲ့သည့် အတန်း၊ ကျောင်းသို့ရောက်သည့်ခုနှစ်၊ ကျောင်းဆောင်၊
+                  မွေးဇာတိမြို့ — ဒီအချက်တွေကတော့ Admin မှ စစ်ဆေးအတည်ပြုပြီးမှသာ အဓိကမှတ်တမ်းတွင်
+                  ပြောင်းလဲပါမည်။ ဆက်သွယ်ရန်နှင့် လိပ်စာကိုတော့ ကိုယ်တိုင်တန်း ပြင်နိုင်ပါသည်။
+                </p>
+                <form onSubmit={submitCorrection} className="mt-4 grid gap-3 sm:grid-cols-3">
           <input
             type="text"
             value={corrFullName}
@@ -699,51 +719,23 @@ export default function ProfilePage() {
             placeholder="ပြင်ဆင်ရသည့် အကြောင်းအရင်း / အခြားအချက်"
             className="rounded-xl border border-stone-300 px-3 py-2 text-sm sm:col-span-2"
           />
-          <button
-            type="submit"
-            className="rounded-xl bg-amber-800 px-4 py-2 text-sm font-bold text-white hover:bg-amber-900"
-          >
-            ပြင်ဆင်ချက် တင်ပြမည်
-          </button>
-        </form>
-          </div>
-        )}
-      </div>
-
-      {/* Change Login Password */}
-      <div className="rounded-3xl border border-stone-200 bg-white shadow-sm">
-        <button
-          type="button"
-          onClick={() => setOpenPassword(!openPassword)}
-          className="flex w-full items-center justify-between p-6 text-left"
-          aria-expanded={openPassword}
-        >
-          <div className="flex items-center gap-2 text-stone-900">
-            <KeyRound className="h-5 w-5 text-amber-800" />
-            <h2 className="text-lg font-bold">Login စကားဝှက် (PIN) ပြောင်းလဲရန်</h2>
-          </div>
-          <span className="inline-flex items-center gap-1 rounded-lg bg-stone-100 px-3 py-1.5 text-xs font-semibold text-amber-900">
-            {openPassword ? (
-              <>
-                <span>ခေါက်သိမ်းမည်</span>
-                <ChevronUp className="h-4 w-4" />
-              </>
-            ) : (
-              <>
-                <span>ပြောင်းလဲရန် ဖွင့်မည်</span>
-                <ChevronDown className="h-4 w-4" />
-              </>
+                  <button
+                    type="submit"
+                    className="rounded-xl bg-amber-800 px-4 py-2 text-sm font-bold text-white hover:bg-amber-900"
+                  >
+                    ပြင်ဆင်ချက် တင်ပြမည်
+                  </button>
+                </form>
+              </div>
             )}
-          </span>
-        </button>
 
-        {openPassword && (
-          <div className="border-t border-stone-200 px-6 pb-6 pt-4">
-            <p className="text-xs text-stone-600">
-              လက်ရှိ စကားဝှက်ကို ထည့်ပြီး အသစ်ပြောင်းနိုင်ပါသည်။ စကားဝှက်အသစ်သည် အနည်းဆုံး စာလုံး ၆ လုံး
-              ရှိရပါမည်။
-            </p>
-            <form onSubmit={submitPasswordChange} className="mt-4 grid gap-3 sm:grid-cols-3">
+            {manageTab === "PASSWORD" && (
+              <div className="pt-4">
+                <p className="text-xs text-stone-600">
+                  လက်ရှိ စကားဝှက်ကို ထည့်ပြီး အသစ်ပြောင်းနိုင်ပါသည်။ စကားဝှက်အသစ်သည် အနည်းဆုံး စာလုံး ၆ လုံး
+                  ရှိရပါမည်။
+                </p>
+                <form onSubmit={submitPasswordChange} className="mt-4 grid gap-3 sm:grid-cols-3">
           <input
             type="password"
             value={pwCurrent}
@@ -778,11 +770,13 @@ export default function ProfilePage() {
             {pwError}
           </p>
         )}
-        {pwSuccess && (
-          <p className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-800">
-            {pwSuccess}
-          </p>
-        )}
+                {pwSuccess && (
+                  <p className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-800">
+                    {pwSuccess}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
